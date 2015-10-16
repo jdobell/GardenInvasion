@@ -14,6 +14,8 @@ local scene = composer.newScene( sceneName )
 ---------------------------------------------------------------------------------
 
 local nextSceneButton
+local numberHoles = 8
+local holes = {}
 
 function scene:create( event )
     local sceneGroup = self.view
@@ -24,13 +26,16 @@ function scene:create( event )
     -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
     local background = display.newImage("background.png", 0, 0 ) 
     sceneGroup:insert(background)
-
-    local numberHoles = 11
-    local holes = {}
+    
     local yHole = 450
     local xHole = 60
 
+    --create vole hills on display
     for i=1, numberHoles do
+
+        local holeGroup = display.newGroup();
+        local hole = {}
+
         local holeBottom = display.newImageRect("hole-bottom.png", 40, 19)
         holeBottom.x = xHole 
         holeBottom.y = yHole
@@ -50,14 +55,35 @@ function scene:create( event )
             xHole = xHole - (225)
         end
 
-        sceneGroup:insert(holeTop)
-        sceneGroup:insert(vole)
-        sceneGroup:insert(holeBottom) 
+        holeGroup:insert(holeTop)
+        holeGroup:insert(vole)
+        holeGroup:insert(holeBottom)
+        sceneGroup:insert(holeGroup)
+
+        hole["bottom"] = holeBottom
+        hole["top"] = holeTop
+        hole["vole"] = vole 
+        holes[i] = hole;
     end
 
+    timer.performWithDelay(1000, ChooseRandomMole, 0)
+    
 
+    
+end
 
- 
+function ChooseRandomMole()
+    local randomHole = math.random(1, numberHoles)
+    startMoleMove(randomHole)
+end
+
+function startMoleMove(moleNumber)
+    transition.to(holes[moleNumber].vole, {time=1000, y=holes[moleNumber].vole.y - 15, onComplete=startMoleReturn})
+end
+
+function startMoleReturn(obj)
+    
+    transition.to(obj, {time=1000, y=obj.y + 15})
 end
 
 function scene:show( event )
