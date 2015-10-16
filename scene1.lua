@@ -22,7 +22,42 @@ function scene:create( event )
     -- 
     -- INSERT code here to initialize the scene
     -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
-    local hole = display.newImage("hole-bottom.png", 222, 210) 
+    local background = display.newImage("background.png", 0, 0 ) 
+    sceneGroup:insert(background)
+
+    local numberHoles = 11
+    local holes = {}
+    local yHole = 450
+    local xHole = 60
+
+    for i=1, numberHoles do
+        local holeBottom = display.newImageRect("hole-bottom.png", 40, 19)
+        holeBottom.x = xHole 
+        holeBottom.y = yHole
+
+        local holeTop = display.newImageRect("hole-top.png", 40, 19)
+        holeTop.x = xHole
+        holeTop.y = yHole - 19
+
+        local vole = display.newImageRect("vole.png", 25, 20)
+        vole.x = xHole + 7.5
+        vole.y = yHole - 8
+
+        xHole = xHole + 75
+
+        if i % 3 == 0 then
+            yHole = yHole -55
+            xHole = xHole - (225)
+        end
+
+        sceneGroup:insert(holeTop)
+        sceneGroup:insert(vole)
+        sceneGroup:insert(holeBottom) 
+    end
+
+
+
+ 
 end
 
 function scene:show( event )
