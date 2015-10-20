@@ -13,7 +13,7 @@ local scene = composer.newScene( sceneName )
 
 ---------------------------------------------------------------------------------
 
-local nextSceneButton
+local score
 local numberHoles = 8
 local holes = {}
 
@@ -27,6 +27,8 @@ function scene:create( event )
     local background = display.newImage("background.png", 0, 0 ) 
     sceneGroup:insert(background)
     
+    score = display.newText( sceneGroup, 0, 10, 10)
+
     local yHole = 450
     local xHole = 60
 
@@ -64,12 +66,20 @@ function scene:create( event )
         hole["top"] = holeTop
         hole["vole"] = vole 
         holes[i] = hole;
+
+        vole:addEventListener("touch", moleTouchedListener )
     end
 
     timer.performWithDelay(1000, ChooseRandomMole, 0)
     
 
     
+end
+
+function moleTouchedListener( event )
+    if (event.phase == "ended") then
+        score.text = tonumber(score.text) + 1
+    end
 end
 
 function ChooseRandomMole()
