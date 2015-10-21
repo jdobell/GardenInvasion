@@ -13,21 +13,25 @@ local scene = composer.newScene( sceneName )
 
 ---------------------------------------------------------------------------------
 
+local globalSceneGroup
 local score
 local numberHoles = 8
 local holes = {}
+local birds = {}
+local birdNumber = 1
 
 function scene:create( event )
     local sceneGroup = self.view
-
+    globalSceneGroup = display.newGroup()
+    sceneGroup:insert(globalSceneGroup)
     -- Called when the scene's view does not exist
     -- 
     -- INSERT code here to initialize the scene
     -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
     local background = display.newImage("background.png", 0, 0 ) 
-    sceneGroup:insert(background)
+    globalSceneGroup:insert(background)
     
-    score = display.newText( sceneGroup, 0, 10, 10)
+    score = display.newText( globalSceneGroup, 0, 10, 10)
 
     local yHole = 450
     local xHole = 60
@@ -35,7 +39,7 @@ function scene:create( event )
     --create vole hills on display
     for i=1, numberHoles do
 
-        local holeGroup = display.newGroup();
+        local holeGroup = display.newGroup()
         local hole = {}
 
         local holeBottom = display.newImageRect("hole-bottom.png", 40, 19)
@@ -49,6 +53,7 @@ function scene:create( event )
         local vole = display.newImageRect("vole.png", 25, 20)
         vole.x = xHole + 7.5
         vole.y = yHole - 8
+        vole.isClickable = false
 
         xHole = xHole + 75
 
@@ -60,7 +65,7 @@ function scene:create( event )
         holeGroup:insert(holeTop)
         holeGroup:insert(vole)
         holeGroup:insert(holeBottom)
-        sceneGroup:insert(holeGroup)
+        globalSceneGroup:insert(holeGroup)
 
         hole["bottom"] = holeBottom
         hole["top"] = holeTop
@@ -71,29 +76,60 @@ function scene:create( event )
     end
 
     timer.performWithDelay(1000, ChooseRandomMole, 0)
-    
-
+    timer.performWithDelay(randomBirdDelay(), randomBird)    
     
 end
 
 function moleTouchedListener( event )
     if (event.phase == "ended") then
-        score.text = tonumber(score.text) + 1
+        if(event.target.isClickable) then
+            score.text = tonumber(score.text) + 1
+            event.target.isClickable = false
+        end
     end
 end
 
 function ChooseRandomMole()
     local randomHole = math.random(1, numberHoles)
+
+    while holes[randomHole].vole.isMoving do
+        randomHole = math.random(1, numberHoles)
+    end        
     startMoleMove(randomHole)
 end
 
 function startMoleMove(moleNumber)
+    holes[moleNumber].vole.isClickable = true
+    holes[moleNumber].vole.isMoving = true
     transition.to(holes[moleNumber].vole, {time=1000, y=holes[moleNumber].vole.y - 15, onComplete=startMoleReturn})
 end
 
 function startMoleReturn(obj)
     
-    transition.to(obj, {time=1000, y=obj.y + 15})
+    transition.to(obj, {time=1000, y=obj.y + 15, onComplete=removeMoleClickable})
+end
+
+function removeMoleClickable(obj)
+    obj.isClickable = false
+    obj.isMoving = false
+end
+
+function randomBirdDelay() return math.random(1000, 5000) end
+
+function randomBird()
+    bird = display.newImageRect("bird.png", 20, 20)
+    birds[birdNumber] = bird
+    
+    bird.birdNumber = birdNumber
+    bird.x = 300
+    bird.y = math.random(10, 80)
+
+    birdNumber = birdNumber + 1
+
+    globalSceneGroup:insert(bird)
+    transition.to(bird, {time = 4000, x = -40})
+
+    timer.performWithDelay(randomBirdDelay(), randomBird)
 end
 
 function scene:show( event )
