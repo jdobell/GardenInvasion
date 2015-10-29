@@ -19,6 +19,34 @@ local numberHoles = 8
 local holes = {}
 local birds = {}
 local birdNumber = 1
+local birdSheetOptions =
+{
+    width = 22,
+    height = 22,
+    numFrames = 3
+}
+
+local sequences_flappingBird = {
+    -- consecutive frames sequence
+    {
+        name = "normalFlying",
+        start = 1,
+        count = 2,
+        time = 1000,
+        loopCount = 0,
+        loopDirection = "forward"
+    },
+    {
+        name = "dive",
+        start = 3,
+        count = 3,
+        time = 0,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions )
 
 function scene:create( event )
     local sceneGroup = self.view
@@ -117,19 +145,27 @@ end
 function randomBirdDelay() return math.random(1000, 5000) end
 
 function randomBird()
-    bird = display.newImageRect("bird.png", 20, 20)
+
+    bird = display.newSprite(sheet_flappingBird, sequences_flappingBird)
     birds[birdNumber] = bird
     
     bird.birdNumber = birdNumber
-    bird.x = 300
+    bird.x = -40
     bird.y = math.random(10, 80)
 
     birdNumber = birdNumber + 1
 
     globalSceneGroup:insert(bird)
-    transition.to(bird, {time = 4000, x = -40})
+    transition.to(bird, {time = 4000, x = 240, onComplete=birdDive})
+    bird:play()
 
     timer.performWithDelay(randomBirdDelay(), randomBird)
+end
+
+function birdDive(bird)
+    bird:setSequence("dive")
+    bird:play()
+    transition.to(bird, {time=2000, x = 280, y=300})
 end
 
 function scene:show( event )
