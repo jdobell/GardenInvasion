@@ -15,7 +15,7 @@ local scene = composer.newScene( sceneName )
 
 local globalSceneGroup
 local score
-local numberHoles = 8
+local numberHoles = 9
 local holes = {}
 local birds = {}
 local birdNumber = 1
@@ -165,7 +165,13 @@ end
 function birdDive(bird)
     bird:setSequence("dive")
     bird:play()
-    transition.to(bird, {time=2000, x = 280, y=300})
+    transition.to(bird, {time=1000, x = 280, y=300, onComplete=birdMissed})
+end
+
+function birdMissed(bird)
+    bird:setSequence("normalFlying")
+    bird:play()
+    transition.to(bird, {time=500, x = 320, y= 280})
 end
 
 function scene:show( event )
