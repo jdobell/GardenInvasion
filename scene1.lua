@@ -15,9 +15,9 @@ local scene = composer.newScene( sceneName )
 
 local globalSceneGroup
 local score
+local levelConfig
 
 ----------------------------Vole sprite setup --------------------------------
-local numberHoles = 9
 local holes = {}
 local voleSheetOptions =
 {
@@ -29,7 +29,7 @@ local voleSheetOptions =
 local sequences_touchedVole = {
     -- consecutive frames sequence
     {
-        name = "moleTouched",
+        name = "voleTouched",
         start = 1,
         count = 2,
         time = 100,
@@ -77,7 +77,14 @@ local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions 
 
 ----------------------------Bird sprite setup end-----------------------------
 
+----------------------------local variable setup------------------------------
+local streak = 0
+
 function scene:create( event )
+
+----------------load level-----------------
+    levelConfig = require(event.params.levelSelect)
+
     local sceneGroup = self.view
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
@@ -94,7 +101,7 @@ function scene:create( event )
     local xHole = 60
 
     --create vole hills on display
-    for i=1, numberHoles do
+    for i=1, levelConfig.numberHoles do
 
         local holeGroup = display.newGroup()
         local hole = {}
@@ -110,7 +117,7 @@ function scene:create( event )
         --local vole = display.newImageRect("vole.png", 25, 20)
         local vole = display.newSprite(sheet_vole, sequences_touchedVole)
         vole.x = xHole + 7.5
-        vole.y = yHole - 8
+        vole.y = yHole - 3
         vole.isClickable = false
 
         xHole = xHole + 75
@@ -130,20 +137,28 @@ function scene:create( event )
         hole["vole"] = vole 
         holes[i] = hole;
 
-        vole:addEventListener("touch", moleTouchedListener )
+        vole:addEventListener("touch", voleTouchedListener )
     end
 
-    timer.performWithDelay(1000, ChooseRandomMole, 0)
-    timer.performWithDelay(randomBirdDelay(), randomBird)    
+    timer.performWithDelay(1000, chooseRandomVole, 0)
+
+    if(levelConfig.birdsInLevel) then
+        timer.performWithDelay(randomBirdDelay(), randomBird)    
+    end
     
 end
 
-function moleTouchedListener( event )
+function voleTouchedListener( event )
     if (event.phase == "ended") then
-        if(event.target.isClickable) then
-            event.target:play()
+        local vole = event.target
+        if(vole.isClickable) then
+            if (vole.transition == "up") then
+                transition.cancel(vole)
+                startVoleReturn(vole)
+            end
+            vole:play()
             score.text = tonumber(score.text) + 1
-            event.target.isClickable = false
+            vole.isClickable = false
         end
     end
 end
@@ -159,28 +174,31 @@ function birdTouchedListener( event )
     end
 end
 
-function ChooseRandomMole()
-    local randomHole = math.random(1, numberHoles)
+function chooseRandomVole()
+    local randomHole = math.random(1, levelConfig.numberHoles)
 
     while holes[randomHole].vole.isMoving do
-        randomHole = math.random(1, numberHoles)
+        randomHole = math.random(1, levelConfig.numberHoles)
     end        
-    startMoleMove(randomHole)
+    startVoleMove(randomHole)
 end
 
-function startMoleMove(moleNumber)
-    local vole = holes[moleNumber].vole
+function startVoleMove(voleNumber)
+    local vole = holes[voleNumber].vole
     vole.isClickable = true
     vole.isMoving = true
-    transition.to(holes[moleNumber].vole, {time=1000, y=holes[moleNumber].vole.y - 15, onComplete=startMoleReturn})
+    vole.transition = "up"
+    transition.to(holes[voleNumber].vole, {time=1000, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
 end
 
-function startMoleReturn(obj)
+function startVoleReturn(obj)
     
-    transition.to(obj, {time=1000, y=obj.y + 15, onComplete=removeMoleClickable})
+    obj.transition = "down"
+    local holeBottom = obj.parent[1];
+    transition.to(obj, {time=1000, y=holeBottom.y + 15, onComplete=removeVoleClickable})
 end
 
-function removeMoleClickable(obj)
+function removeVoleClickable(obj)
     obj:setFrame(1)
     obj.isClickable = false
     obj.isMoving = false
@@ -222,6 +240,33 @@ end
 
 function destroySelf(obj)
     obj:removeSelf()
+end
+
+function increaseStreak()
+    streak = streak + 1
+
+    --no switch statement in lua...sigh
+    if(streak == levelConfig.catStreak) then
+        catStreakAchieved()
+    elseif(streak == levelConfig.eagleStreak) then
+        if(levelConfig.birdsInLevel) then
+            eagleStreakAchieveded()
+        else
+            catStreakAchieved()
+        end
+    elseif(streak == levelConfig.deerStreak) then
+        if(levelConfig.deerInLevel) then
+            deerStreakAchieved()
+        elseif(levelConfig.birdsInLevel) then
+            eagleStreakAchieveded()
+        else
+            catStreakAchieved()
+        end
+    end
+end
+
+function resetStreak()
+    streak = 0
 end
 
 function scene:show( event )
