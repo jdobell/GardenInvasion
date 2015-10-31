@@ -153,6 +153,8 @@ function birdTouchedListener( event )
         if(event.target.isClickable) then
             score.text = tonumber(score.text) + 1
             event.target.isClickable = false
+            transition.cancel(event.target)
+            transition.to(event.target, {time=800, x=event.target.x + 100, y=-100, onComplete=destroySelf})
         end
     end
 end
@@ -216,6 +218,10 @@ function birdMissed(bird)
     bird:setSequence("normalFlying")
     bird:play()
     transition.to(bird, {time=500, x = 320, y= 280})
+end
+
+function destroySelf(obj)
+    obj:removeSelf()
 end
 
 function scene:show( event )
