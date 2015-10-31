@@ -15,8 +15,35 @@ local scene = composer.newScene( sceneName )
 
 local globalSceneGroup
 local score
+
+----------------------------Vole sprite setup --------------------------------
 local numberHoles = 9
 local holes = {}
+local voleSheetOptions =
+{
+    width = 25,
+    height = 20,
+    numFrames = 2
+}
+
+local sequences_touchedVole = {
+    -- consecutive frames sequence
+    {
+        name = "moleTouched",
+        start = 1,
+        count = 2,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_vole = graphics.newImageSheet( "vole.png", voleSheetOptions )
+
+----------------------------Vole sprite setup end-----------------------------
+
+
+----------------------------Bird sprite setup --------------------------------
 local birds = {}
 local birdNumber = 1
 local birdSheetOptions =
@@ -48,6 +75,8 @@ local sequences_flappingBird = {
 
 local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions )
 
+----------------------------Bird sprite setup end-----------------------------
+
 function scene:create( event )
     local sceneGroup = self.view
     globalSceneGroup = display.newGroup()
@@ -78,7 +107,8 @@ function scene:create( event )
         holeTop.x = xHole
         holeTop.y = yHole - 19
 
-        local vole = display.newImageRect("vole.png", 25, 20)
+        --local vole = display.newImageRect("vole.png", 25, 20)
+        local vole = display.newSprite(sheet_vole, sequences_touchedVole)
         vole.x = xHole + 7.5
         vole.y = yHole - 8
         vole.isClickable = false
@@ -111,6 +141,16 @@ end
 function moleTouchedListener( event )
     if (event.phase == "ended") then
         if(event.target.isClickable) then
+            event.target:play()
+            score.text = tonumber(score.text) + 1
+            event.target.isClickable = false
+        end
+    end
+end
+
+function birdTouchedListener( event )
+    if (event.phase == "ended") then
+        if(event.target.isClickable) then
             score.text = tonumber(score.text) + 1
             event.target.isClickable = false
         end
@@ -127,8 +167,9 @@ function ChooseRandomMole()
 end
 
 function startMoleMove(moleNumber)
-    holes[moleNumber].vole.isClickable = true
-    holes[moleNumber].vole.isMoving = true
+    local vole = holes[moleNumber].vole
+    vole.isClickable = true
+    vole.isMoving = true
     transition.to(holes[moleNumber].vole, {time=1000, y=holes[moleNumber].vole.y - 15, onComplete=startMoleReturn})
 end
 
@@ -138,6 +179,7 @@ function startMoleReturn(obj)
 end
 
 function removeMoleClickable(obj)
+    obj:setFrame(1)
     obj.isClickable = false
     obj.isMoving = false
 end
@@ -150,9 +192,11 @@ function randomBird()
     birds[birdNumber] = bird
     
     bird.birdNumber = birdNumber
+    bird.isClickable = true
     bird.x = -40
     bird.y = math.random(10, 80)
 
+    bird:addEventListener("touch", birdTouchedListener)
     birdNumber = birdNumber + 1
 
     globalSceneGroup:insert(bird)
