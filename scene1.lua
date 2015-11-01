@@ -176,11 +176,14 @@ end
 function voleTouchedListener( event )
     if (event.phase == "ended") then
         local vole = event.target
+
+        vole.hit = true
+        increaseStreak()
+
         if(vole.isClickable) then
             if (vole.transition == "up") then
                 transition.cancel(vole)
                 startVoleReturn(vole)
-                increaseStreak()
             end
             vole:play()
             score.text = tonumber(score.text) + 1
@@ -214,6 +217,7 @@ function startVoleMove(voleNumber)
     vole.isClickable = true
     vole.isMoving = true
     vole.transition = "up"
+    vole.hit = false
     transition.to(holes[voleNumber].vole, {time=levelConfig.voleSpeed, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
 end
 
@@ -228,6 +232,9 @@ function removeVoleClickable(obj)
     obj:setFrame(1)
     obj.isClickable = false
     obj.isMoving = false
+    if(obj.hit ~= true) then
+        resetStreak()
+    end
 end
 
 function randomBirdDelay() return math.random(levelConfig.birdFrequencyLow, levelConfig.birdFrequencyHigh) end
@@ -299,9 +306,17 @@ function catStreakAchieved()
     numberCats = numberCats + 1
     local cat = display.newSprite(sheet_cat, sequences_cat)
     cat.x = 10
-    cat.y = 100 + (numberCats * 2)
+    cat.y = 200 + (numberCats * 10)
 
     globalSceneGroup:insert(cat)
+end
+
+function eagleStreakAchieveded()
+
+end
+
+function deerStreakAchieved()
+
 end
 
 function scene:show( event )
