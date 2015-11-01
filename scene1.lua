@@ -7,6 +7,7 @@
 local sceneName = ...
 
 local composer = require( "composer" )
+local physic = require("physics")
 
 -- Load scene with same root filename as this file
 local scene = composer.newScene( sceneName )
@@ -18,6 +19,7 @@ local score
 local levelConfig
 local streak = 0
 local numberCats = 0
+local cats = {}
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -233,8 +235,27 @@ function removeVoleClickable(obj)
     obj.isClickable = false
     obj.isMoving = false
     if(obj.hit ~= true) then
+        if (table.maxn(cats) > 0) then
+            cat = cats[table.maxn(cats)]
+            table.remove(cats, table.maxn(cats))
+            transition.to(cat, {x=obj.x, y=obj.y, onComplete=catGetVole})
+        end
         resetStreak()
     end
+end
+
+function catGetVole(obj)
+    local vole = display.newImageRect("smallVole.png", 10, 11)
+    vole.x = obj.x + 10
+    vole.y = obj.y
+
+    globalSceneGroup:insert(vole)
+
+    physics.addBody(obj)
+    physics.addBody(vole)
+    local weldJoint = physics.newJoint("weld", obj, vole, obj.x, obj.y)
+
+    transition.to(obj, {time=1000, y=550, onComplete=removeSelf})
 end
 
 function randomBirdDelay() return math.random(levelConfig.birdFrequencyLow, levelConfig.birdFrequencyHigh) end
@@ -307,6 +328,8 @@ function catStreakAchieved()
     local cat = display.newSprite(sheet_cat, sequences_cat)
     cat.x = 10
     cat.y = 200 + (numberCats * 10)
+
+    table.insert(cats,cat)
 
     globalSceneGroup:insert(cat)
 end
