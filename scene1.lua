@@ -238,9 +238,11 @@ function removeVoleClickable(obj)
         if (table.maxn(cats) > 0) then
             cat = cats[table.maxn(cats)]
             table.remove(cats, table.maxn(cats))
-            transition.to(cat, {x=obj.x, y=obj.y, onComplete=catGetVole})
+            cat:play()
+            transition.to(cat, {time=1000, x=obj.x, y=obj.y, onComplete=catGetVole})
+        else
+            resetStreak()
         end
-        resetStreak()
     end
 end
 
