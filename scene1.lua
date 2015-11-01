@@ -16,6 +16,8 @@ local scene = composer.newScene( sceneName )
 local globalSceneGroup
 local score
 local levelConfig
+local streak = 0
+local numberCats = 0
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -77,8 +79,32 @@ local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions 
 
 ----------------------------Bird sprite setup end-----------------------------
 
+----------------------------Cat sprite setup --------------------------------
+local holes = {}
+local catSheetOptions =
+{
+    width = 14,
+    height = 22,
+    numFrames = 2
+}
+
+local sequences_cat = {
+    -- consecutive frames sequence
+    {
+        name = "walkingCat",
+        start = 1,
+        count = 2,
+        time = 500,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_cat = graphics.newImageSheet( "cat.png", catSheetOptions )
+
+----------------------------Cat sprite setup end-----------------------------
+
 ----------------------------local variable setup------------------------------
-local streak = 0
 
 function scene:create( event )
 
@@ -114,7 +140,6 @@ function scene:create( event )
         holeTop.x = xHole
         holeTop.y = yHole - 19
 
-        --local vole = display.newImageRect("vole.png", 25, 20)
         local vole = display.newSprite(sheet_vole, sequences_touchedVole)
         vole.x = xHole + 7.5
         vole.y = yHole - 3
@@ -140,7 +165,7 @@ function scene:create( event )
         vole:addEventListener("touch", voleTouchedListener )
     end
 
-    timer.performWithDelay(1000, chooseRandomVole, 0)
+    timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)
 
     if(levelConfig.birdsInLevel) then
         timer.performWithDelay(randomBirdDelay(), randomBird)    
@@ -155,6 +180,7 @@ function voleTouchedListener( event )
             if (vole.transition == "up") then
                 transition.cancel(vole)
                 startVoleReturn(vole)
+                increaseStreak()
             end
             vole:play()
             score.text = tonumber(score.text) + 1
@@ -188,14 +214,14 @@ function startVoleMove(voleNumber)
     vole.isClickable = true
     vole.isMoving = true
     vole.transition = "up"
-    transition.to(holes[voleNumber].vole, {time=1000, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
+    transition.to(holes[voleNumber].vole, {time=levelConfig.voleSpeed, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
 end
 
 function startVoleReturn(obj)
     
     obj.transition = "down"
     local holeBottom = obj.parent[1];
-    transition.to(obj, {time=1000, y=holeBottom.y + 15, onComplete=removeVoleClickable})
+    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 15, onComplete=removeVoleClickable})
 end
 
 function removeVoleClickable(obj)
@@ -204,7 +230,7 @@ function removeVoleClickable(obj)
     obj.isMoving = false
 end
 
-function randomBirdDelay() return math.random(1000, 5000) end
+function randomBirdDelay() return math.random(levelConfig.birdFrequencyLow, levelConfig.birdFrequencyHigh) end
 
 function randomBird()
 
@@ -220,7 +246,7 @@ function randomBird()
     birdNumber = birdNumber + 1
 
     globalSceneGroup:insert(bird)
-    transition.to(bird, {time = 4000, x = 240, onComplete=birdDive})
+    transition.to(bird, {time = levelConfig.birdSpeed, x = 240, onComplete=birdDive})
     bird:play()
 
     timer.performWithDelay(randomBirdDelay(), randomBird)
@@ -267,6 +293,15 @@ end
 
 function resetStreak()
     streak = 0
+end
+
+function catStreakAchieved()
+    numberCats = numberCats + 1
+    local cat = display.newSprite(sheet_cat, sequences_cat)
+    cat.x = 10
+    cat.y = 100 + (numberCats * 2)
+
+    globalSceneGroup:insert(cat)
 end
 
 function scene:show( event )
