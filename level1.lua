@@ -7,8 +7,8 @@ birdFrequencyHigh = 5000,
 birdSpeed = 4000,
 deerSpeed = 1000,
 catStreak = 5,
-eagleStreak = 10,
-deerStreak = 15,
+deerStreak = 10,
+eagleStreak = 15,
 birdsInLevel = true,
 deerInLevel = true
 }

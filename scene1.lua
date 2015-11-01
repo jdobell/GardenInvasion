@@ -18,8 +18,6 @@ local globalSceneGroup
 local score
 local levelConfig
 local streak = 0
-local numberCats = 0
-local cats = {}
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -82,7 +80,9 @@ local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions 
 ----------------------------Bird sprite setup end-----------------------------
 
 ----------------------------Cat sprite setup --------------------------------
-local holes = {}
+local numberCats = 0
+local cats = {}
+
 local catSheetOptions =
 {
     width = 14,
@@ -105,6 +105,34 @@ local sequences_cat = {
 local sheet_cat = graphics.newImageSheet( "cat.png", catSheetOptions )
 
 ----------------------------Cat sprite setup end-----------------------------
+
+----------------------------Eagle sprite setup --------------------------------
+
+local numberEagles = 0
+local eagles = {}
+
+local eagleSheetOptions =
+{
+    width = 25,
+    height = 25,
+    numFrames = 2
+}
+
+local sequences_eagle = {
+    -- consecutive frames sequence
+    {
+        name = "flyingEagle",
+        start = 1,
+        count = 2,
+        time = 1000,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_eagle = graphics.newImageSheet( "eagle.png", eagleSheetOptions )
+
+----------------------------Eagle sprite setup end-----------------------------
 
 ----------------------------local variable setup------------------------------
 
@@ -304,21 +332,26 @@ function increaseStreak()
     --no switch statement in lua...sigh
     if(streak == levelConfig.catStreak) then
         catStreakAchieved()
-    elseif(streak == levelConfig.eagleStreak) then
-        if(levelConfig.birdsInLevel) then
-            eagleStreakAchieveded()
-        else
-            catStreakAchieved()
-        end
     elseif(streak == levelConfig.deerStreak) then
         if(levelConfig.deerInLevel) then
             deerStreakAchieved()
-        elseif(levelConfig.birdsInLevel) then
-            eagleStreakAchieveded()
+        else
+            catStreakAchieved()
+        end
+    elseif(streak == levelConfig.eagleStreak) then
+        if(levelConfig.birdsInLevel) then
+            eagleStreakAchieved()
+        elseif(levelConfig.deerInLevel) then
+            deerStreakAchieved()
         else
             catStreakAchieved()
         end
     end
+
+-----TODO Figure out what to do with streaks after achieved all.....multiplyer for score?    
+
+
+
 end
 
 function resetStreak()
@@ -336,8 +369,16 @@ function catStreakAchieved()
     globalSceneGroup:insert(cat)
 end
 
-function eagleStreakAchieveded()
+function eagleStreakAchieved()
+    numberEagles = numberEagles + 1
+    local eagle = display.newSprite(sheet_eagle, sequences_eagle)
+    eagle.x = 300
+    eagle.y = 30 + (numberEagles * 10)
+    eagle:play()
 
+    table.insert(eagles,eagle)
+
+    globalSceneGroup:insert(eagle)
 end
 
 function deerStreakAchieved()
