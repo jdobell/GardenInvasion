@@ -15,6 +15,8 @@ local scene = composer.newScene( sceneName )
 ---------------------------------------------------------------------------------
 
 local globalSceneGroup
+local time
+local timeDisplay
 local score
 local levelConfig
 local streak = 0
@@ -231,6 +233,9 @@ function scene:create( event )
     globalSceneGroup:insert(background)
     
     score = display.newText( globalSceneGroup, 0, 10, 10)
+    timeDisplay = display.newText( globalSceneGroup, 0, 10, 30)
+    time = levelConfig.levelTime
+    timeDisplay.text = time
 
     local yHole = 450
     local xHole = 60
@@ -275,6 +280,7 @@ function scene:create( event )
     end
 
     timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)
+    timer.performWithDelay(1000, levelCountdown, 0)
 
     if(levelConfig.birdsInLevel) then
         timer.performWithDelay(randomBirdDelay(), randomBird)    
@@ -284,6 +290,11 @@ function scene:create( event )
         timer.performWithDelay(randomDeerDelay(), randomDeer)    
     end
 
+end
+
+function levelCountdown()
+    time = time - 1
+    timeDisplay.text = time
 end
 
 function voleTouchedListener( event )

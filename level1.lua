@@ -1,5 +1,6 @@
 local configuration = {
 scene = "scene1",
+levelTime = 60,
 numberHoles = 9,
 voleFrequency = 1000,
 voleSpeed = 1000,
