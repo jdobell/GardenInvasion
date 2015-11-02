@@ -213,11 +213,50 @@ local sequences_dog = {
 
 local sheet_dog = graphics.newImageSheet( "dog.png", dogSheetOptions )
 
-----------------------------Eagle sprite setup end-----------------------------
+----------------------------Eagle sprite setup end----------------------------
+
+----------------------------Vegetable sprite setup --------------------------------
+
+local numberVeggies = 24
+local veggies = {}
+
+local veggieSheetOptions =
+{
+    width = 20,
+    height = 20,
+    numFrames = 2
+}
+
+local sequences_veggies = {
+    -- consecutive frames sequence
+    {
+        name = "revive",
+        start = 1,
+        count = 1,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    },
+    {
+        name = "wilt",
+        start = 2,
+        count = 2,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+----------------------------Eagle sprite setup end----------------------------
 
 ----------------------------local variable setup------------------------------
 
 function scene:create( event )
+
+    -- Called when the scene's view does not exist
+    -- 
+    -- INSERT code here to initialize the scene
+    -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
 
 ----------------load level-----------------
     --levelConfig = require(event.params.levelSelect)
@@ -225,10 +264,9 @@ function scene:create( event )
     local sceneGroup = self.view
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
-    -- Called when the scene's view does not exist
-    -- 
-    -- INSERT code here to initialize the scene
-    -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
+
+    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
+
     local background = display.newImage("background.png", 0, 0 ) 
     globalSceneGroup:insert(background)
     
@@ -277,6 +315,29 @@ function scene:create( event )
         holes[i] = hole;
 
         vole:addEventListener("touch", voleTouchedListener )
+    end
+
+    local veggieGroup = display.newGroup()
+    globalSceneGroup:insert(veggieGroup)
+
+    local veggieX = 260
+    local veggieY = 450
+
+    for i=1, numberVeggies do
+
+        local veggie = display.newSprite(sheet_veggie, sequences_veggies)
+        veggie.x = veggieX
+        veggie.y = veggieY
+
+        veggieX = veggieX + 20
+
+        if i % 3 == 0 then
+            veggieY = veggieY - 30
+            veggieX = veggieX - 60
+        end
+
+        veggieGroup:insert(veggie)
+
     end
 
     timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)
