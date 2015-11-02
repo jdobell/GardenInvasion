@@ -15,6 +15,9 @@ display.setDefault( "anchorY", 0.0 )
 
 local levelSelect = "level2"
 -- load scene1
-composer.gotoScene( "scene1", {params = {levelSelect = levelSelect}} )
+
+local levelConfig = require(levelSelect)
+
+composer.gotoScene( levelConfig.scene, {params = {levelConfig = levelConfig}} )
 
 -- Add any objects that should appear on all scenes below (e.g. tab bar, hud, etc)

@@ -79,6 +79,41 @@ local sheet_flappingBird = graphics.newImageSheet( "bird.png", birdSheetOptions 
 
 ----------------------------Bird sprite setup end-----------------------------
 
+----------------------------Deer sprite setup --------------------------------
+local deers = {}
+local deerNumber = 1
+local deerSheetOptions =
+{
+    width = 37,
+    height = 25,
+    numFrames = 2
+}
+
+local sequences_deer = {
+    -- consecutive frames sequence
+    {
+        name = "walking",
+        start = 1,
+        count = 2,
+        time = 500,
+        loopCount = 0,
+        loopDirection = "forward"
+    },
+    {
+        name = "hit",
+        start = 3,
+        count = 3,
+        time = 0,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_deer = graphics.newImageSheet( "deer.png", deerSheetOptions )
+
+----------------------------Deer sprite setup end-----------------------------
+
+
 ----------------------------Cat sprite setup --------------------------------
 local numberCats = 0
 local cats = {}
@@ -115,7 +150,7 @@ local eagleSheetOptions =
 {
     width = 25,
     height = 25,
-    numFrames = 2
+    numFrames = 3
 }
 
 local sequences_eagle = {
@@ -127,10 +162,54 @@ local sequences_eagle = {
         time = 1000,
         loopCount = 0,
         loopDirection = "forward"
+    },
+    {
+        name = "dive",
+        start = 3,
+        count = 3,
+        time = 0,
+        loopCount = 1,
+        loopDirection = "forward"
     }
 }
 
 local sheet_eagle = graphics.newImageSheet( "eagle.png", eagleSheetOptions )
+
+----------------------------Eagle sprite setup end-----------------------------
+
+----------------------------Dog sprite setup --------------------------------
+
+local numberDogs = 0
+local dogs = {}
+
+local dogSheetOptions =
+{
+    width = 25,
+    height = 15,
+    numFrames = 2
+}
+
+local sequences_dog = {
+    -- consecutive frames sequence
+    {
+        name = "walkingDog",
+        start = 1,
+        count = 2,
+        time = 1000,
+        loopCount = 0,
+        loopDirection = "forward"
+    },
+    {
+        name = "chase",
+        start = 1,
+        count = 2,
+        time = 500,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_dog = graphics.newImageSheet( "dog.png", dogSheetOptions )
 
 ----------------------------Eagle sprite setup end-----------------------------
 
@@ -139,8 +218,8 @@ local sheet_eagle = graphics.newImageSheet( "eagle.png", eagleSheetOptions )
 function scene:create( event )
 
 ----------------load level-----------------
-    levelConfig = require(event.params.levelSelect)
-
+    --levelConfig = require(event.params.levelSelect)
+    levelConfig = event.params.levelConfig
     local sceneGroup = self.view
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
@@ -201,6 +280,10 @@ function scene:create( event )
         timer.performWithDelay(randomBirdDelay(), randomBird)    
     end
     
+    if(levelConfig.deerInLevel) then
+        timer.performWithDelay(randomDeerDelay(), randomDeer)    
+    end
+
 end
 
 function voleTouchedListener( event )
@@ -229,6 +312,17 @@ function birdTouchedListener( event )
             event.target.isClickable = false
             transition.cancel(event.target)
             transition.to(event.target, {time=800, x=event.target.x + 100, y=-100, onComplete=destroySelf})
+        end
+    end
+end
+
+function deerTouchedListener( event )
+    if (event.phase == "ended") then
+        if(event.target.isClickable) then
+            score.text = tonumber(score.text) + 1
+            event.target.isClickable = false
+            transition.cancel(event.target)
+            transition.to(event.target, {time=800, x= 400, onComplete=destroySelf})
         end
     end
 end
@@ -263,9 +357,11 @@ function removeVoleClickable(obj)
     obj.isClickable = false
     obj.isMoving = false
     if(obj.hit ~= true) then
-        if (table.maxn(cats) > 0) then
-            cat = cats[table.maxn(cats)]
-            table.remove(cats, table.maxn(cats))
+        local maxCats = table.maxn(cats)
+        if (maxCats > 0) then
+            cat = cats[maxCats]
+            numberCats = numberCats - 1
+            table.remove(cats, maxCats)
             cat:play()
             transition.to(cat, {time=1000, x=obj.x, y=obj.y, onComplete=catGetVole})
         else
@@ -285,14 +381,14 @@ function catGetVole(obj)
     physics.addBody(vole)
     local weldJoint = physics.newJoint("weld", obj, vole, obj.x, obj.y)
 
-    transition.to(obj, {time=1000, y=550, onComplete=removeSelf})
+    transition.to(obj, {time=1000, y=550, onComplete=destroySelf})
 end
 
 function randomBirdDelay() return math.random(levelConfig.birdFrequencyLow, levelConfig.birdFrequencyHigh) end
 
 function randomBird()
 
-    bird = display.newSprite(sheet_flappingBird, sequences_flappingBird)
+    local bird = display.newSprite(sheet_flappingBird, sequences_flappingBird)
     birds[birdNumber] = bird
     
     bird.birdNumber = birdNumber
@@ -310,6 +406,28 @@ function randomBird()
     timer.performWithDelay(randomBirdDelay(), randomBird)
 end
 
+function randomDeerDelay() return math.random(levelConfig.deerFrequencyLow, levelConfig.deerFrequencyHigh) end
+
+function randomDeer()
+
+    local deer = display.newSprite(sheet_deer, sequences_deer)
+    deers[deerNumber] = deer
+    
+    deer.deerNumber = deerNumber
+    deer.isClickable = true
+    deer.x = -40
+    deer.y = math.random(190, 220)
+
+    deer:addEventListener("touch", deerTouchedListener)
+    deerNumber = deerNumber + 1
+
+    globalSceneGroup:insert(deer)
+    transition.to(deer, {time = levelConfig.deerSpeed, x = 275, onComplete=deerMissed})
+    deer:play()
+
+    timer.performWithDelay(randomDeerDelay(), randomDeer)
+end
+
 function birdDive(bird)
     bird:setSequence("dive")
     bird:play()
@@ -317,9 +435,57 @@ function birdDive(bird)
 end
 
 function birdMissed(bird)
-    bird:setSequence("normalFlying")
-    bird:play()
-    transition.to(bird, {time=500, x = 320, y= 280})
+
+    local maxEagles = table.maxn(eagles)
+    if (maxEagles > 0) then
+            bird:setSequence("normalFlying")
+            bird:play()
+            local eagle = eagles[maxEagles]
+            numberEagles = numberEagles - 1
+            table.remove(eagles, maxEagles)
+            eagle:setSequence("dive")
+            transition.to(eagle, {time=1000, x=bird.x, y=bird.y - bird.height, onComplete= function(eagle) eagleGetBird(eagle, bird) end})
+    else
+        bird:setSequence("normalFlying")
+        bird:play()
+        transition.to(bird, {time=500, x = 320, y= 280})
+        resetStreak()
+    end
+end
+
+function deerMissed(deer)
+
+    local maxDogs = table.maxn(dogs)
+    if (maxDogs > 0) then
+            --deer:setSequence("normalFlying")
+            --deer:play()
+            local dog = dogs[maxDogs]
+            numberDogs = numberDogs - 1
+            table.remove(dogs, maxDogs)
+            dog:setSequence("chase")
+            transition.to(dog, {time=500, x=200, y=deer.y, onComplete= function(dog) dogGetDeer(dog, deer) end})
+    else
+        --deer:setSequence("destroyGarden")
+        --deer:play()
+        transition.to(deer, {time=500, x = 400})
+        resetStreak()
+    end
+end
+
+function eagleGetBird(eagle, bird)
+    physics.addBody(eagle, {density=10})
+    physics.addBody(bird)
+    eagle:setSequence("flyingEagle")
+    eagle:play()
+    local weldJoint = physics.newJoint("weld", eagle, bird, bird.x, bird.y)
+
+    transition.to(eagle, {time=1000, x=400, y= eagle.y - 40, onComplete=destroySelf})
+end
+
+function dogGetDeer(dog, deer)
+
+    transition.to(dog, {time=levelConfig.deerSpeed/2, x=400, onComplete=destroySelf})
+    transition.to(deer, {time=levelConfig.deerSpeed/2, x=400, onComplete=destroySelf})
 end
 
 function destroySelf(obj)
@@ -372,7 +538,7 @@ end
 function eagleStreakAchieved()
     numberEagles = numberEagles + 1
     local eagle = display.newSprite(sheet_eagle, sequences_eagle)
-    eagle.x = 300
+    eagle.x = 280
     eagle.y = 30 + (numberEagles * 10)
     eagle:play()
 
@@ -382,7 +548,14 @@ function eagleStreakAchieved()
 end
 
 function deerStreakAchieved()
+    numberDogs = numberDogs + 1
+    local dog = display.newSprite(sheet_dog, sequences_dog)
+    dog.x = 280
+    dog.y = 180 + (numberDogs * 10)
 
+    table.insert(dogs,dog)
+
+    globalSceneGroup:insert(dog)
 end
 
 function scene:show( event )
