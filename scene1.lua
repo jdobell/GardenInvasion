@@ -70,7 +70,7 @@ local sequences_flappingBird = {
     {
         name = "dive",
         start = 3,
-        count = 3,
+        count = 1,
         time = 0,
         loopCount = 1,
         loopDirection = "forward"
@@ -88,7 +88,7 @@ local deerSheetOptions =
 {
     width = 37,
     height = 25,
-    numFrames = 2
+    numFrames = 3
 }
 
 local sequences_deer = {
@@ -104,7 +104,7 @@ local sequences_deer = {
     {
         name = "hit",
         start = 3,
-        count = 3,
+        count = 1,
         time = 0,
         loopCount = 1,
         loopDirection = "forward"
@@ -168,7 +168,7 @@ local sequences_eagle = {
     {
         name = "dive",
         start = 3,
-        count = 3,
+        count = 1,
         time = 0,
         loopCount = 1,
         loopDirection = "forward"
@@ -240,7 +240,7 @@ local sequences_veggies = {
     {
         name = "wilt",
         start = 2,
-        count = 2,
+        count = 1,
         time = 100,
         loopCount = 1,
         loopDirection = "forward"
@@ -265,6 +265,7 @@ function scene:create( event )
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
 
+    -- this has to go here because the level config variable has to be set in scene:create
     local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
 
     local background = display.newImage("background.png", 0, 0 ) 
@@ -337,7 +338,11 @@ function scene:create( event )
         end
 
         veggieGroup:insert(veggie)
-
+        if(i > levelConfig.startingHealth) then
+            print("hi")
+            veggie:setSequence("wilt")
+            veggie:play()
+        end
     end
 
     timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)

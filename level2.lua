@@ -1,6 +1,7 @@
 local configuration = {
 scene = "scene1",
 levelTime = 50,
+startingHealth = 20,
 veggie = "beet.png",
 numberHoles = 9,
 voleFrequency = 1000,
