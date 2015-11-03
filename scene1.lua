@@ -268,16 +268,22 @@ function scene:create( event )
     -- this has to go here because the level config variable has to be set in scene:create
     local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
 
-    local background = display.newImage("background.png", 0, 0 ) 
+    local background = display.newImage("background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
     
+    healthBar = display.newImageRect("health-bar.png", 23, 230)
+    healthBar.x = 7
+    healthBar.y = 50
+
+    globalSceneGroup:insert(healthBar)
+
     score = display.newText( globalSceneGroup, 0, 10, 10)
     timeDisplay = display.newText( globalSceneGroup, 0, 10, 30)
     time = levelConfig.levelTime
     timeDisplay.text = time
 
-    local yHole = 450
-    local xHole = 60
+    local yHole = 440
+    local xHole = 40
 
     --create vole hills on display
     for i=1, levelConfig.numberHoles do
@@ -285,17 +291,13 @@ function scene:create( event )
         local holeGroup = display.newGroup()
         local hole = {}
 
-        local holeBottom = display.newImageRect("hole-bottom.png", 40, 19)
+        local holeBottom = display.newImageRect("hole-bottom.png", 60, 29)
         holeBottom.x = xHole 
         holeBottom.y = yHole
 
-        local holeTop = display.newImageRect("hole-top.png", 40, 19)
-        holeTop.x = xHole
-        holeTop.y = yHole - 19
-
         local vole = display.newSprite(sheet_vole, sequences_touchedVole)
-        vole.x = xHole + 7.5
-        vole.y = yHole - 3
+        vole.x = xHole + 17
+        vole.y = yHole + 3
         vole.isClickable = false
 
         xHole = xHole + 75
@@ -305,13 +307,11 @@ function scene:create( event )
             xHole = xHole - (225)
         end
 
-        holeGroup:insert(holeTop)
         holeGroup:insert(vole)
         holeGroup:insert(holeBottom)
         globalSceneGroup:insert(holeGroup)
 
         hole["bottom"] = holeBottom
-        hole["top"] = holeTop
         hole["vole"] = vole 
         holes[i] = hole;
 
@@ -426,7 +426,7 @@ function startVoleReturn(obj)
     
     obj.transition = "down"
     local holeBottom = obj.parent[1];
-    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 15, onComplete=removeVoleClickable})
+    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 17, onComplete=removeVoleClickable})
 end
 
 function removeVoleClickable(obj)
