@@ -20,6 +20,8 @@ local timeDisplay
 local score
 local levelConfig
 local streak = 0
+local countdownTimer
+local levelComplete
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -275,7 +277,7 @@ function scene:create( event )
     healthBar.x = 7
     healthBar.y = 50
 
-    globalSceneGroup:insert(healthBar)
+    sceneGroup:insert(healthBar)
 
     score = display.newText( globalSceneGroup, 0, 10, 10)
     timeDisplay = display.newText( globalSceneGroup, 0, 10, 30)
@@ -346,7 +348,7 @@ function scene:create( event )
     end
 
     timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)
-    timer.performWithDelay(1000, levelCountdown, 0)
+    countdownTimer = timer.performWithDelay(1000, levelCountdown, 0)
 
     if(levelConfig.birdsInLevel) then
         timer.performWithDelay(randomBirdDelay(), randomBird)    
@@ -356,11 +358,20 @@ function scene:create( event )
         timer.performWithDelay(randomDeerDelay(), randomDeer)    
     end
 
+    levelComplete = display.newText("Level Complete", display.contentWidth / 2, display.contentHeight / 2, native.systemFont, 20)
+    levelComplete.anchorX = 0.5
+    levelComplete.alpha = 0
+    sceneGroup:insert(levelComplete)
 end
 
 function levelCountdown()
     time = time - 1
     timeDisplay.text = time
+
+    if(time == 0) then
+        transition.fadeIn(levelComplete, {time = 2000})
+        timer.cancel(countdownTimer)
+    end
 end
 
 function voleTouchedListener( event )
@@ -395,11 +406,14 @@ end
 
 function deerTouchedListener( event )
     if (event.phase == "ended") then
-        if(event.target.isClickable) then
+        local deer = event.target
+        if(deer.isClickable) then
             score.text = tonumber(score.text) + 1
-            event.target.isClickable = false
-            transition.cancel(event.target)
-            transition.to(event.target, {time=800, x= 400, onComplete=destroySelf})
+            deer.isClickable = false
+            deer:setSequence("hit")
+            deer:play()
+            transition.cancel(deer)
+            transition.to(deer, {time=800, x= 400, onComplete=destroySelf})
         end
     end
 end
@@ -525,7 +539,7 @@ function birdMissed(bird)
     else
         bird:setSequence("normalFlying")
         bird:play()
-        transition.to(bird, {time=500, x = 320, y= 280})
+        transition.to(bird, {time=500, x = 375, y= 280, onComplete=destroySelf})
         resetStreak()
     end
 end
@@ -605,7 +619,7 @@ function catStreakAchieved()
     numberCats = numberCats + 1
     local cat = display.newSprite(sheet_cat, sequences_cat)
     cat.x = 10
-    cat.y = 200 + (numberCats * 10)
+    cat.y = 270 + (numberCats * 10)
 
     table.insert(cats,cat)
 

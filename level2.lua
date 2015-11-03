@@ -1,6 +1,6 @@
 local configuration = {
 scene = "scene1",
-levelTime = 50,
+levelTime = 3,
 startingHealth = 20,
 veggie = "beet.png",
 numberHoles = 12,
