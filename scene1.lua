@@ -15,6 +15,7 @@ local scene = composer.newScene( sceneName )
 ---------------------------------------------------------------------------------
 
 local globalSceneGroup
+local timers = {}
 local time
 local timeDisplay
 local score
@@ -22,6 +23,11 @@ local levelConfig
 local streak = 0
 local countdownTimer
 local levelComplete
+local gameOver
+local wiltedIndex
+local veggiesAffectedPerChange
+local maxLives
+local health
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -279,10 +285,10 @@ function scene:create( event )
 
     sceneGroup:insert(healthBar)
 
-    score = display.newText( globalSceneGroup, 0, 10, 10)
-    timeDisplay = display.newText( globalSceneGroup, 0, 10, 30)
+    scoreLabel = display.newText(globalSceneGroup, "Score:", 10, 30, native.systemFont, 16)
+    score = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
     time = levelConfig.levelTime
-    timeDisplay.text = time
+    timeDisplay = display.newText( globalSceneGroup, "Time:"..time, 10, 10, native.systemFont, 16)
 
     local yHole = 440
     local xHole = 40
@@ -320,6 +326,12 @@ function scene:create( event )
         vole:addEventListener("touch", voleTouchedListener )
     end
 
+    maxLives = levelConfig.maxLives
+    health = levelConfig.startingHealth
+    --how many vegetables die when a life is lost
+    veggiesAffectedPerChange = numberVeggies / maxLives
+    wiltedIndex = veggiesAffectedPerChange * health
+
     local veggieGroup = display.newGroup()
     globalSceneGroup:insert(veggieGroup)
 
@@ -340,39 +352,95 @@ function scene:create( event )
         end
 
         veggieGroup:insert(veggie)
-        if(i > levelConfig.startingHealth) then
-            print("hi")
+        table.insert(veggies, veggie)
+        if(i > wiltedIndex) then
             veggie:setSequence("wilt")
             veggie:play()
         end
     end
 
-    timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0)
+    table.insert(timers, timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0))
     countdownTimer = timer.performWithDelay(1000, levelCountdown, 0)
+    table.insert(timers, countdownTimer)
 
     if(levelConfig.birdsInLevel) then
-        timer.performWithDelay(randomBirdDelay(), randomBird)    
+        table.insert(timers, timer.performWithDelay(randomBirdDelay(), randomBird))
     end
     
     if(levelConfig.deerInLevel) then
-        timer.performWithDelay(randomDeerDelay(), randomDeer)    
+        table.insert(timers, timer.performWithDelay(randomDeerDelay(), randomDeer))
     end
 
-    levelComplete = display.newText("Level Complete", display.contentWidth / 2, display.contentHeight / 2, native.systemFont, 20)
+    levelComplete = display.newText("Level Complete", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     levelComplete.anchorX = 0.5
     levelComplete.alpha = 0
     sceneGroup:insert(levelComplete)
+
+    gameOver = display.newText("Game Over", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    gameOver.anchorX = 0.5
+    gameOver.alpha = 0
+    sceneGroup:insert(gameOver)
 end
 
 function levelCountdown()
     time = time - 1
-    timeDisplay.text = time
+    timeDisplay.text = "Time:"..time
 
     if(time == 0) then
         transition.fadeIn(levelComplete, {time = 2000})
-        timer.cancel(countdownTimer)
+        cancelTimers()
     end
 end
+
+function cancelTimers()
+    for k, v in pairs(timers) do
+        timer.cancel(v)
+    end
+end
+
+function healthReduce()
+    if(time > 0 and health > 0) then
+        health = health - 1
+        wiltVeggies()
+    end
+
+    if(health == 0) then
+        --game over
+        transition.fadeIn(gameOver, {time = 2000})
+        cancelTimers()
+    end
+end
+
+function healthIncrease()
+    if(time > 0 and health < maxLives) then
+        health = health + 1
+    end
+end
+
+function reviveVeggies()
+
+    if(health < maxLives) then
+        wiltedIndex = wiltedIndex + veggiesAffectedPerChange
+
+        for i = math.floor((health - 1) * veggiesAffectedPerChange), math.ceil(wiltedIndex) do
+            veggies[i]:setSequence("revive")
+            veggies[i]:play()
+        end
+    end
+end
+
+function wiltVeggies()
+    if(health > 0) then
+      for i = math.floor(health * veggiesAffectedPerChange), math.ceil(wiltedIndex) do
+            if(i > 0) then
+                veggies[i]:setSequence("wilt")
+                veggies[i]:play()
+            end
+        end
+        wiltedIndex = wiltedIndex - veggiesAffectedPerChange
+    end
+end
+
 
 function voleTouchedListener( event )
     if (event.phase == "ended") then
@@ -386,6 +454,8 @@ function voleTouchedListener( event )
                 transition.cancel(vole)
                 startVoleReturn(vole)
             end
+            healthIncrease()
+            reviveVeggies()
             vole:play()
             score.text = tonumber(score.text) + 1
             vole.isClickable = false
@@ -447,7 +517,7 @@ function removeVoleClickable(obj)
     obj:setFrame(1)
     obj.isClickable = false
     obj.isMoving = false
-    if(obj.hit ~= true) then
+    if(obj.hit ~= true and time > 0) then
         local maxCats = table.maxn(cats)
         if (maxCats > 0) then
             cat = cats[maxCats]
@@ -456,6 +526,7 @@ function removeVoleClickable(obj)
             cat:play()
             transition.to(cat, {time=1000, x=obj.x, y=obj.y, onComplete=catGetVole})
         else
+            healthReduce()
             resetStreak()
         end
     end
@@ -494,7 +565,7 @@ function randomBird()
     transition.to(bird, {time = levelConfig.birdSpeed, x = 240, onComplete=birdDive})
     bird:play()
 
-    timer.performWithDelay(randomBirdDelay(), randomBird)
+    table.insert(timers, timer.performWithDelay(randomBirdDelay(), randomBird))
 end
 
 function randomDeerDelay() return math.random(levelConfig.deerFrequencyLow, levelConfig.deerFrequencyHigh) end
@@ -516,7 +587,7 @@ function randomDeer()
     transition.to(deer, {time = levelConfig.deerSpeed, x = 275, onComplete=deerMissed})
     deer:play()
 
-    timer.performWithDelay(randomDeerDelay(), randomDeer)
+    table.insert(timers, timer.performWithDelay(randomDeerDelay(), randomDeer))
 end
 
 function birdDive(bird)
@@ -528,7 +599,7 @@ end
 function birdMissed(bird)
 
     local maxEagles = table.maxn(eagles)
-    if (maxEagles > 0) then
+    if (maxEagles > 0 and time > 0) then
             bird:setSequence("normalFlying")
             bird:play()
             local eagle = eagles[maxEagles]
@@ -540,6 +611,7 @@ function birdMissed(bird)
         bird:setSequence("normalFlying")
         bird:play()
         transition.to(bird, {time=500, x = 375, y= 280, onComplete=destroySelf})
+        healthReduce()
         resetStreak()
     end
 end
@@ -547,7 +619,7 @@ end
 function deerMissed(deer)
 
     local maxDogs = table.maxn(dogs)
-    if (maxDogs > 0) then
+    if (maxDogs > 0 and time > 0) then
             --deer:setSequence("normalFlying")
             --deer:play()
             local dog = dogs[maxDogs]
@@ -559,6 +631,7 @@ function deerMissed(deer)
         --deer:setSequence("destroyGarden")
         --deer:play()
         transition.to(deer, {time=500, x = 400})
+        healthReduce()
         resetStreak()
     end
 end
@@ -605,6 +678,7 @@ function increaseStreak()
         end
     end
 
+    
 -----TODO Figure out what to do with streaks after achieved all.....multiplyer for score?    
 
 

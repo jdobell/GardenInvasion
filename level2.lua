@@ -1,7 +1,8 @@
 local configuration = {
 scene = "scene1",
-levelTime = 3,
-startingHealth = 20,
+levelTime = 50,
+startingHealth = 2,
+maxLives = 30,
 veggie = "beet.png",
 numberHoles = 12,
 voleFrequency = 1000,
@@ -15,8 +16,8 @@ deerSpeed = 3000,
 catStreak = 2,
 deerStreak = 3,
 eagleStreak = 4,
-birdsInLevel = true,
-deerInLevel = true
+birdsInLevel = false,
+deerInLevel = false
 }
 
 return configuration
