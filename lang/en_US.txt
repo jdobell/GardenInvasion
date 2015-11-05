@@ -1,0 +1,5 @@
+Score: = Score:
+Time: = Time:
+Level Complete = Level Complete
+Game Over = Game Over
+Bonus: = Bonus:

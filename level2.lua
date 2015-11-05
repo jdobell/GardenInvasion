@@ -16,8 +16,8 @@ deerSpeed = 3000,
 catStreak = 2,
 deerStreak = 3,
 eagleStreak = 4,
-birdsInLevel = false,
-deerInLevel = false
+birdsInLevel = true,
+deerInLevel = true
 }
 
 return configuration

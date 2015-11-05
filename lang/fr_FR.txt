@@ -1,0 +1,5 @@
+Score: = Le Score:
+Time: = Temps:
+Level Complete = Niveau Complete
+Game Over = Jeu Fini
+Bonus: = Prime:

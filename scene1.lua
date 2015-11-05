@@ -8,6 +8,9 @@ local sceneName = ...
 
 local composer = require( "composer" )
 local physic = require("physics")
+local localization = require( "mod_localize" )
+local _s = localization.str
+localization:setLocale( 'en_US' )
 
 -- Load scene with same root filename as this file
 local scene = composer.newScene( sceneName )
@@ -18,7 +21,9 @@ local globalSceneGroup
 local timers = {}
 local time
 local timeDisplay
-local score
+local scoreLabel
+local score = 0
+local scorePerClick = 10
 local levelConfig
 local streak = 0
 local countdownTimer
@@ -293,10 +298,10 @@ function scene:create( event )
 
     sceneGroup:insert(healthBar)
 
-    scoreLabel = display.newText(globalSceneGroup, "Score:", 10, 30, native.systemFont, 16)
-    score = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
+    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), 10, 30, native.systemFont, 16)
+    scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
     time = levelConfig.levelTime
-    timeDisplay = display.newText( globalSceneGroup, "Time:"..time, 10, 10, native.systemFont, 16)
+    timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, 10, 10, native.systemFont, 16)
 
     local yHole = 440
     local xHole = 40
@@ -380,12 +385,12 @@ function scene:create( event )
     end
 
 -----set up end of game labels
-    levelComplete = display.newText("Level Complete", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    levelComplete = display.newText(_s("Level Complete"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     levelComplete.anchorX = 0.5
     levelComplete.alpha = 0
     sceneGroup:insert(levelComplete)
 
-    bonusLabel = display.newText("Bonus:", (display.contentWidth / 2) - 20, levelComplete.contentBounds.yMax + 10, native.systemFont, 24)
+    bonusLabel = display.newText(_s("Bonus:"), (display.contentWidth / 2) - 20, levelComplete.contentBounds.yMax + 10, native.systemFont, 24)
     bonusLabel.anchorX = 0.5
     bonusLabel.alpha = 0
     sceneGroup:insert(bonusLabel)
@@ -394,7 +399,7 @@ function scene:create( event )
     bonusAmountLabel.alpha = 0
     sceneGroup:insert(bonusAmountLabel)
 
-    gameOver = display.newText("Game Over", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    gameOver = display.newText(_s("Game Over"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     gameOver.anchorX = 0.5
     gameOver.alpha = 0
     sceneGroup:insert(gameOver)
@@ -402,7 +407,7 @@ end
 
 function levelCountdown()
     time = time - 1
-    timeDisplay.text = "Time:"..time
+    timeDisplay.text = _s("Time:")..time
 
     if(time == 0) then
         cancelTimers()
@@ -442,6 +447,11 @@ function healthIncrease()
     end
 end
 
+function increaseScore()
+    score = score + scorePerClick
+    scoreAmountLabel.text = tonumber(score)
+end
+
 function countBonus()
 
     if (#cats > 0) then
@@ -450,11 +460,15 @@ function countBonus()
         transition.fadeOut(cat, {time = 1000, onComplete=destroySelf})
         bonus = bonus + catBonus
     elseif(#eagles > 0) then
-        transition.fadeOut(eagles[#eagles], {time = 1000, onComplete=destroySelf})
+        local eagle = eagles[#eagles]
+        table.remove(eagles, #eagles)
+        transition.fadeOut(eagle, {time = 1000, onComplete=destroySelf})
         bonus = bonus + eagleBonus
     elseif(#dogs > 0) then
-        transition.fadeOut(dogs[#dogs], {time = 1000, onComplete=destroySelf})
-        bonus = bonus + eagleBonus
+        local dog = dogs[#dogs]
+        table.remove(dogs, #dogs)
+        transition.fadeOut(dog, {time = 1000, onComplete=destroySelf})
+        bonus = bonus + dogBonus
     elseif(wiltedIndex > 0) then
         --for k, v in pairs(veggies) do
          --   print(k)
@@ -471,9 +485,9 @@ function countBonus()
 
     if(bonusItems) then
         bonusAmountLabel.text = bonus
-        timer.performWithDelay(300, countBonus)
+        timer.performWithDelay(400, countBonus)
     else
-        levelComplete.text = "Done"
+        scoreAmountLabel.text = score + bonus
     end
 
 end
@@ -511,7 +525,7 @@ function voleTouchedListener( event )
         if(vole.isClickable) then
             vole.hit = true
             increaseStreak()
-
+            increaseScore()
             if (vole.transition == "up") then
                 transition.cancel(vole)
                 startVoleReturn(vole)
@@ -519,7 +533,6 @@ function voleTouchedListener( event )
             healthIncrease()
             reviveVeggies()
             vole:play()
-            score.text = tonumber(score.text) + 1
             vole.isClickable = false
         end
     end
@@ -528,7 +541,7 @@ end
 function birdTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         if(event.target.isClickable) then
-            score.text = tonumber(score.text) + 1
+            increaseScore()
             event.target.isClickable = false
             transition.cancel(event.target)
             transition.to(event.target, {time=800, x=event.target.x + 100, y=-100, onComplete=destroySelf})
@@ -540,7 +553,7 @@ function deerTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
-            score.text = tonumber(score.text) + 1
+            increaseScore()
             deer.isClickable = false
             deer:setSequence("hit")
             deer:play()
