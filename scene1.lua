@@ -23,11 +23,19 @@ local levelConfig
 local streak = 0
 local countdownTimer
 local levelComplete
+local bonus = 0
+local bonusLabel
+local bonusAmountLabel
+local bonusItems = true
 local gameOver
 local wiltedIndex
 local veggiesAffectedPerChange
 local maxLives
 local health
+local catBonus = 25
+local eagleBonus = 50
+local dogBonus = 100
+local veggieBonus = 10
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -371,10 +379,20 @@ function scene:create( event )
         table.insert(timers, timer.performWithDelay(randomDeerDelay(), randomDeer))
     end
 
+-----set up end of game labels
     levelComplete = display.newText("Level Complete", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     levelComplete.anchorX = 0.5
     levelComplete.alpha = 0
     sceneGroup:insert(levelComplete)
+
+    bonusLabel = display.newText("Bonus:", (display.contentWidth / 2) - 20, levelComplete.contentBounds.yMax + 10, native.systemFont, 24)
+    bonusLabel.anchorX = 0.5
+    bonusLabel.alpha = 0
+    sceneGroup:insert(bonusLabel)
+
+    bonusAmountLabel = display.newText("0", bonusLabel.contentBounds.xMax + 3, bonusLabel.y, native.systemFont, 24)
+    bonusAmountLabel.alpha = 0
+    sceneGroup:insert(bonusAmountLabel)
 
     gameOver = display.newText("Game Over", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     gameOver.anchorX = 0.5
@@ -387,8 +405,15 @@ function levelCountdown()
     timeDisplay.text = "Time:"..time
 
     if(time == 0) then
-        transition.fadeIn(levelComplete, {time = 2000})
         cancelTimers()
+        transition.fadeIn(levelComplete, {time = 2000})
+        transition.fadeIn(bonusLabel, {time = 2000})
+        transition.fadeIn(bonusAmountLabel, {time=2000})
+
+        --set wilted index to the last whole number for bonus counting
+        wiltedIndex = math.ceil(wiltedIndex)
+        print(wiltedIndex)
+        timer.performWithDelay(1000, countBonus)
     end
 end
 
@@ -417,6 +442,43 @@ function healthIncrease()
     end
 end
 
+function countBonus()
+
+    if (#cats > 0) then
+        local cat = cats[#cats]
+        table.remove(cats, #cats)
+        transition.fadeOut(cat, {time = 1000, onComplete=destroySelf})
+        bonus = bonus + catBonus
+    elseif(#eagles > 0) then
+        transition.fadeOut(eagles[#eagles], {time = 1000, onComplete=destroySelf})
+        bonus = bonus + eagleBonus
+    elseif(#dogs > 0) then
+        transition.fadeOut(dogs[#dogs], {time = 1000, onComplete=destroySelf})
+        bonus = bonus + eagleBonus
+    elseif(wiltedIndex > 0) then
+        --for k, v in pairs(veggies) do
+         --   print(k)
+           -- print(v)
+        --end
+        print(wiltedIndex)
+        print(veggies[wiltedIndex])
+        transition.fadeOut(veggies[wiltedIndex], {time=1000})
+        wiltedIndex = wiltedIndex - 1
+        bonus = bonus + veggieBonus
+    else
+        bonusItems = false
+    end
+
+    if(bonusItems) then
+        bonusAmountLabel.text = bonus
+        timer.performWithDelay(300, countBonus)
+    else
+        levelComplete.text = "Done"
+    end
+
+end
+
+
 function reviveVeggies()
 
     if(health < maxLives) then
@@ -443,13 +505,13 @@ end
 
 
 function voleTouchedListener( event )
-    if (event.phase == "ended") then
+    if (event.phase == "ended" and time > 0) then
         local vole = event.target
 
-        vole.hit = true
-        increaseStreak()
-
         if(vole.isClickable) then
+            vole.hit = true
+            increaseStreak()
+
             if (vole.transition == "up") then
                 transition.cancel(vole)
                 startVoleReturn(vole)
@@ -464,7 +526,7 @@ function voleTouchedListener( event )
 end
 
 function birdTouchedListener( event )
-    if (event.phase == "ended") then
+    if (event.phase == "ended" and time > 0) then
         if(event.target.isClickable) then
             score.text = tonumber(score.text) + 1
             event.target.isClickable = false
@@ -475,7 +537,7 @@ function birdTouchedListener( event )
 end
 
 function deerTouchedListener( event )
-    if (event.phase == "ended") then
+    if (event.phase == "ended" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
             score.text = tonumber(score.text) + 1
