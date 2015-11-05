@@ -10,7 +10,16 @@ local composer = require( "composer" )
 local physic = require("physics")
 local localization = require( "mod_localize" )
 local _s = localization.str
-localization:setLocale( 'en_US' )
+
+function setLocale()
+    localization.setLocale(system.getPreference("locale", "identifier"))    
+end
+
+local  localeSet = pcall(setLocale, 'Language Not Available')
+
+if (localeSet == false) then
+    localization:setLocale( 'en_US' )
+end
 
 -- Load scene with same root filename as this file
 local scene = composer.newScene( sceneName )
