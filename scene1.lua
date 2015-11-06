@@ -391,16 +391,35 @@ function scene:create( event )
         end
     end
 
-    table.insert(timers, timer.performWithDelay(levelConfig.voleFrequency, chooseRandomVole, 0))
-    countdownTimer = timer.performWithDelay(1000, levelCountdown, 0)
+    startingCountdown = display.newText("", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    startingCountdown.anchorX = 0.5
+    sceneGroup:insert(startingCountdown)
+
+    for i = 3, 0, -1 do
+        local countdown = i
+        if(i == 0) then
+            countdown = _s("Play")
+        end
+
+---------calculation for timer to change the text at the right time. I saved writing yet another function that calls another timer
+        timer.performWithDelay((i*-1+4) * 1000, function()
+                                        startingCountdown.text = countdown
+                                        if(i == 0) then
+                                            transition.fadeOut(startingCountdown, {time=3000})
+                                        end
+                                    end)
+    end
+
+    table.insert(timers, timer.performWithDelay(5000, chooseRandomVole, 0))
+    countdownTimer = timer.performWithDelay(5000, levelCountdown, 0)
     table.insert(timers, countdownTimer)
 
     if(levelConfig.birdsInLevel) then
-        table.insert(timers, timer.performWithDelay(randomBirdDelay(), randomBird))
+        table.insert(timers, timer.performWithDelay(5000 + randomBirdDelay(), randomBird))
     end
     
     if(levelConfig.deerInLevel) then
-        table.insert(timers, timer.performWithDelay(randomDeerDelay(), randomDeer))
+        table.insert(timers, timer.performWithDelay(5000 + randomDeerDelay(), randomDeer))
     end
 
 -----set up end of game labels
@@ -532,10 +551,22 @@ function wiltVeggies()
     end
 end
 
-function gasHit(creature)
+function gasHit(creature, animal)
     local gas = display.newImageRect('gas.png', 20, 20)
-    gas.x = creature.x
+    if(animal == "deer") then
+        gas.x = creature.x + 50
+    elseif(animal == "bird") then
+        if(creature.sequence == "normalFlying") then
+            gas.x = creature.x + 20
+        elseif(creature.sequence == "dive") then
+            gas.x = creature.x + 10
+        end
+    else
+        gas.x = creature.x
+    end
+
     gas.y = creature.y
+
     gas.alpha = 0
     globalSceneGroup:insert(gas)
 
@@ -567,7 +598,7 @@ end
 function birdTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         if(event.target.isClickable) then
-            gasHit(event.target)
+            gasHit(event.target, "bird")
             increaseScore()
             event.target.isClickable = false
             transition.cancel(event.target)
@@ -580,7 +611,7 @@ function deerTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
-            gasHit(deer)
+            gasHit(deer, "deer")
             increaseScore()
             deer.isClickable = false
             deer:setSequence("hit")
