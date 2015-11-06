@@ -46,6 +46,8 @@ local wiltedIndex
 local veggiesAffectedPerChange
 local maxLives
 local health
+local healthIndicatorMove
+local healthIndicatorStart
 local catBonus = 25
 local eagleBonus = 50
 local dogBonus = 100
@@ -295,6 +297,9 @@ function scene:create( event )
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
 
+    maxLives = levelConfig.maxLives
+    health = levelConfig.startingHealth
+
     -- this has to go here because the level config variable has to be set in scene:create
     local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
 
@@ -304,6 +309,13 @@ function scene:create( event )
     healthBar = display.newImageRect("health-bar.png", 23, 230)
     healthBar.x = 7
     healthBar.y = 50
+
+    healthIndicatorMove = (healthBar.height - 30) / levelConfig.maxLives
+    healthIndicatorStart = healthBar.contentBounds.yMax - 20
+
+    healthIndicator = display.newImageRect("health-indicator.png", 23, 10)
+    healthIndicator.x = 7
+    healthIndicator.y = healthIndicatorStart - (healthIndicatorMove * health)
 
     sceneGroup:insert(healthBar)
 
@@ -348,8 +360,6 @@ function scene:create( event )
         vole:addEventListener("touch", voleTouchedListener )
     end
 
-    maxLives = levelConfig.maxLives
-    health = levelConfig.startingHealth
     --how many vegetables die when a life is lost
     veggiesAffectedPerChange = numberVeggies / maxLives
     wiltedIndex = veggiesAffectedPerChange * health
@@ -440,6 +450,7 @@ end
 function healthReduce()
     if(time > 0 and health > 0) then
         health = health - 1
+        healthIndicator.y = healthIndicator.y + healthIndicatorMove
         wiltVeggies()
     end
 
@@ -453,6 +464,7 @@ end
 function healthIncrease()
     if(time > 0 and health < maxLives) then
         health = health + 1
+        healthIndicator.y = healthIndicator.y - healthIndicatorMove
     end
 end
 
@@ -479,13 +491,7 @@ function countBonus()
         transition.fadeOut(dog, {time = 1000, onComplete=destroySelf})
         bonus = bonus + dogBonus
     elseif(wiltedIndex > 0) then
-        --for k, v in pairs(veggies) do
-         --   print(k)
-           -- print(v)
-        --end
-        print(wiltedIndex)
-        print(veggies[wiltedIndex])
-        transition.fadeOut(veggies[wiltedIndex], {time=1000})
+        transition.fadeOut(veggies[wiltedIndex], {time=500})
         wiltedIndex = wiltedIndex - 1
         bonus = bonus + veggieBonus
     else
@@ -494,7 +500,7 @@ function countBonus()
 
     if(bonusItems) then
         bonusAmountLabel.text = bonus
-        timer.performWithDelay(400, countBonus)
+        timer.performWithDelay(300, countBonus)
     else
         scoreAmountLabel.text = score + bonus
     end
