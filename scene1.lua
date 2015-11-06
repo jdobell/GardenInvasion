@@ -532,6 +532,16 @@ function wiltVeggies()
     end
 end
 
+function gasHit(creature)
+    local gas = display.newImageRect('gas.png', 20, 20)
+    gas.x = creature.x
+    gas.y = creature.y
+    gas.alpha = 0
+    globalSceneGroup:insert(gas)
+
+    transition.fadeIn(gas, {time=50, onComplete= function(gas) timer.performWithDelay(transition.fadeOut(gas, {time=500}), {time=500})end})
+end
+
 
 function voleTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
@@ -539,6 +549,7 @@ function voleTouchedListener( event )
 
         if(vole.isClickable) then
             vole.hit = true
+            gasHit(vole)
             increaseStreak()
             increaseScore()
             if (vole.transition == "up") then
@@ -556,6 +567,7 @@ end
 function birdTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         if(event.target.isClickable) then
+            gasHit(event.target)
             increaseScore()
             event.target.isClickable = false
             transition.cancel(event.target)
@@ -568,6 +580,7 @@ function deerTouchedListener( event )
     if (event.phase == "ended" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
+            gasHit(deer)
             increaseScore()
             deer.isClickable = false
             deer:setSequence("hit")
