@@ -318,6 +318,7 @@ function scene:create( event )
     healthIndicator.y = healthIndicatorStart - (healthIndicatorMove * health)
 
     sceneGroup:insert(healthBar)
+    sceneGroup:insert(healthIndicator)
 
     scoreLabel = display.newText(globalSceneGroup, _s("Score:"), 10, 30, native.systemFont, 16)
     scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
@@ -341,6 +342,7 @@ function scene:create( event )
         vole.x = xHole + 17
         vole.y = yHole + 3
         vole.isClickable = false
+        vole.voleNumber = i
 
         xHole = xHole + 75
 
@@ -402,17 +404,18 @@ function scene:create( event )
         end
 
 ---------calculation for timer to change the text at the right time. I saved writing yet another function that calls another timer
-        timer.performWithDelay((i*-1+4) * 1000, function()
+        table.insert(timers, timer.performWithDelay((i*-1+4) * 1000, function()
                                         startingCountdown.text = countdown
                                         if(i == 0) then
                                             transition.fadeOut(startingCountdown, {time=3000})
                                         end
-                                    end)
+                                    end))
     end
 
-    table.insert(timers, timer.performWithDelay(5000, chooseRandomVole, 0))
-    countdownTimer = timer.performWithDelay(5000, levelCountdown, 0)
-    table.insert(timers, countdownTimer)
+    ----first timer needs to wait 5 seconds to allow the 3,2,1 countdown to take place before this happens
+    timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(levelConfig.voleSpeed, chooseRandomVole, 0))end, 1)
+    timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
+
 
     if(levelConfig.birdsInLevel) then
         table.insert(timers, timer.performWithDelay(5000 + randomBirdDelay(), randomBird))
@@ -455,7 +458,6 @@ function levelCountdown()
 
         --set wilted index to the last whole number for bonus counting
         wiltedIndex = math.ceil(wiltedIndex)
-        print(wiltedIndex)
         timer.performWithDelay(1000, countBonus)
     end
 end
@@ -476,6 +478,7 @@ function healthReduce()
     if(health == 0) then
         --game over
         transition.fadeIn(gameOver, {time = 2000})
+        timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
         cancelTimers()
     end
 end
@@ -522,6 +525,7 @@ function countBonus()
         timer.performWithDelay(300, countBonus)
     else
         scoreAmountLabel.text = score + bonus
+        timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
 
 end
@@ -643,8 +647,10 @@ end
 function startVoleReturn(obj)
     
     obj.transition = "down"
-    local holeBottom = obj.parent[1];
-    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 17, onComplete=removeVoleClickable})
+    
+    local holeBottom = holes[obj.voleNumber].bottom
+    
+    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable})
 end
 
 function removeVoleClickable(obj)
@@ -884,6 +890,7 @@ function scene:hide( event )
         -- INSERT code here to pause the scene
         -- e.g. stop timers, stop animation, unload sounds, etc.)
     elseif phase == "did" then
+            composer.removeScene( "scene1", false )
         -- Called when the scene is now off screen
 
     end 

@@ -18,6 +18,6 @@ local levelSelect = "level2"
 
 local levelConfig = require(levelSelect)
 
-composer.gotoScene( levelConfig.scene, {params = {levelConfig = levelConfig}} )
-
+--composer.gotoScene( levelConfig.scene, {params = {levelConfig = levelConfig}} )
+composer.gotoScene("onion-patch")
 -- Add any objects that should appear on all scenes below (e.g. tab bar, hud, etc)
