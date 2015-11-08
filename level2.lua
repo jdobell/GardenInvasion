@@ -1,7 +1,8 @@
 local configuration = {
+level = 2,
 scene = "scene1",
 parentScene = "onion-patch",
-levelTime = 6,
+levelTime = 35,
 startingHealth = 15,
 maxLives = 30,
 veggie = "beet.png",

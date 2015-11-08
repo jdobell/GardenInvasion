@@ -1,4 +1,5 @@
 local configuration = {
+level = 1,
 scene = "scene1",
 parentScene = "onion-patch",
 levelTime = 30,

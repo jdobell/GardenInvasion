@@ -1,6 +1,9 @@
 local composer = require( "composer" )
+local common = require("mod_common-patches")
 
 local scene = composer.newScene()
+
+local sceneGroup
 
 -- -----------------------------------------------------------------------------------------------------------------
 -- All code outside of the listener functions will only be executed ONCE unless "composer.removeScene()" is called.
@@ -14,36 +17,15 @@ local scene = composer.newScene()
 -- "scene:create()"
 function scene:create( event )
 
-    local sceneGroup = self.view
+    sceneGroup = self.view
 
     local background = display.newImage( sceneGroup, "onion-patch.png", -30, -45 )
 
-    local levelMarker1 = display.newImageRect( sceneGroup, "level-marker.png", 50,50)
-    levelMarker1.x = 5
-    levelMarker1.y = 370
-    local levelIdentifier1 = display.newText(sceneGroup, 1, levelMarker1.x + levelMarker1.width / 2, levelMarker1.y +  levelMarker1.height / 2, native.systemFont, 16)
-    levelIdentifier1.anchorX, levelIdentifier1.anchorY = 0.5, 0.5
-    levelMarker1.level = 1
-    levelMarker1:addEventListener("touch", goToLevel)
-
-    local levelMarker2 = display.newImageRect( sceneGroup, "level-marker.png", 50,50)
-    levelMarker2.x = 5
-    levelMarker2.y = 270
-    local levelIdentifier2 = display.newText(sceneGroup, 2, levelMarker2.x + levelMarker2.width / 2, levelMarker2.y +  levelMarker2.height / 2, native.systemFont, 16)
-    levelIdentifier2.anchorX, levelIdentifier2.anchorY = 0.5, 0.5
-    levelMarker2.level = 2
-    levelMarker2:addEventListener("touch", goToLevel)
+    common.createMarker(sceneGroup, 5, 370, 1)
+    common.createMarker(sceneGroup, 5, 270, 2)
 
 end
 
-
-function goToLevel(event)
-    local levelSelect = "level"..event.target.level
--- load scene1
-
-    local levelConfig = require(levelSelect)
-    composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
-end
 
 -- "scene:show()"
 function scene:show( event )

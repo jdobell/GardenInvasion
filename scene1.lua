@@ -8,18 +8,8 @@ local sceneName = ...
 
 local composer = require( "composer" )
 local physic = require("physics")
-local localization = require( "mod_localize" )
-local _s = localization.str
-
-function setLocale()
-    localization.setLocale(system.getPreference("locale", "identifier"))    
-end
-
-local  localeSet = pcall(setLocale, 'Language Not Available')
-
-if (localeSet == false) then
-    localization:setLocale( 'en_US' )
-end
+local globals = require("global-variables")
+local _s = globals._s
 
 -- Load scene with same root filename as this file
 local scene = composer.newScene( sceneName )
@@ -291,7 +281,6 @@ function scene:create( event )
     -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
 
 ----------------load level-----------------
-    --levelConfig = require(event.params.levelSelect)
     levelConfig = event.params.levelConfig
     local sceneGroup = self.view
     globalSceneGroup = display.newGroup()
@@ -320,7 +309,7 @@ function scene:create( event )
     sceneGroup:insert(healthBar)
     sceneGroup:insert(healthIndicator)
 
-    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), 10, 30, native.systemFont, 16)
+    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), 10, 30, globals.font, 16)
     scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
     time = levelConfig.levelTime
     timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, 10, 10, native.systemFont, 16)

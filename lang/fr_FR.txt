@@ -4,3 +4,4 @@ Level Complete = Niveau Complete
 Game Over = Jeu Fini
 Bonus: = Prime:
 Play = Jouer
+Level = Niveau

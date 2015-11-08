@@ -4,3 +4,4 @@ Level Complete = Level Complete
 Game Over = Game Over
 Bonus: = Bonus:
 Play = Play
+Level = Level
