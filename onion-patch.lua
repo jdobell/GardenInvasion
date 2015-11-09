@@ -18,11 +18,12 @@ local sceneGroup
 function scene:create( event )
 
     sceneGroup = self.view
+    common.new(sceneGroup)
 
     local background = display.newImage( sceneGroup, "onion-patch.png", -30, -45 )
 
-    common.createMarker(sceneGroup, 5, 370, 1)
-    common.createMarker(sceneGroup, 5, 270, 2)
+    common:createMarker(5, 370, 1)
+    common:createMarker(5, 270, 2)
 
 end
 

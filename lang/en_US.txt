@@ -5,3 +5,4 @@ Game Over = Game Over
 Bonus: = Bonus:
 Play = Play
 Level = Level
+Go Back = Go Back
