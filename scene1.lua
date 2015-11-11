@@ -49,6 +49,7 @@ local targetBoard
 local target1Achieved = false
 local target2Achieved = false
 local target3Achieved = false
+local gameEnded = false
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -474,6 +475,7 @@ end
 
 function gameOver()
     --game over
+    gameEnded = true
     transition.fadeIn(gameOverLabel, {time = 2000})
     timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     cancelTimers()
@@ -484,6 +486,7 @@ function levelCountdown()
     timeDisplay.text = _s("Time:")..time
 
     if(time == 0) then
+        gameEnded = true
         cancelTimers()
 
         local levelCompleted = false
@@ -585,7 +588,7 @@ function healthReduce()
 end
 
 function healthIncrease()
-    if(time > 0 and health < maxLives) then
+    if(gameEnded == false and health < maxLives) then
         health = health + 1
         healthIndicator.y = healthIndicator.y - healthIndicatorMove
     end
@@ -692,7 +695,7 @@ end
 
 
 function voleTouchedListener( event )
-    if (event.phase == "ended" and time > 0) then
+    if (event.phase == "ended" and gameEnded == false) then
         local vole = event.target
 
         if(vole.isClickable) then
