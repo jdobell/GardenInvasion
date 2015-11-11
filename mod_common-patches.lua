@@ -6,14 +6,34 @@ local levelConfig
 local commonGroup
 local modalGroup
 local levelText
+local voleChit
+local birdChit
+local deerChit
 
 function _M.new(sceneGroup)
 	commonGroup = sceneGroup
 	modalGroup = display.newGroup()
-	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 280, 440)
-	modal.x, modal.y = 20, 20
-	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 15, modal.contentBounds.yMin + 12, globals.font, 16)
+	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
+	modal.x, modal.y = -23, -44
+	modal:addEventListener( "touch", _M.modalTouched )
+
+	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
 	levelText:setFillColor( black )
+
+	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, 70, globals.font, 16)
+	pestText.anchorX = 0.5
+	pestText:setFillColor( black )
+
+	voleChit = display.newImageRect(modalGroup, "vole-chit.png", 40, 40)
+	voleChit.x, voleChit.y = 70, 100
+
+	birdChit = display.newImageRect(modalGroup, "bird-chit.png", 40, 40)
+	birdChit.x, birdChit.y = 140, 100
+	birdChit.alpha = 0
+
+	deerChit = display.newImageRect(modalGroup, "deer-chit.png", 40, 40)
+	deerChit.x, deerChit.y = 210, 100
+	birdChit.alpha = 0
 
 	local playButton = display.newImageRect( modalGroup, "button-medium.png", 70, 30 )
 	playButton.x, playButton.y = 220, 420
@@ -65,6 +85,14 @@ function _M.getLevelSelectModal(event)
     levelText.text = _s("Level").." "..levelConfig.level
 
     _M:toggleModalVisible(true)
+
+    if(levelConfig.birdsInLevel == false) then
+    	birdChit.alpha = 0
+    end
+
+    if(levelConfig.deerInLevel == false) then
+    	deerChit.alpha = 0
+    end
     modalGroup:toFront()
 end
 
@@ -75,6 +103,10 @@ end
 
 function _M.closeModal()
 	_M.toggleModalVisible(false)
+end
+
+function _M.modalTouched(event)
+
 end
 
 return _M

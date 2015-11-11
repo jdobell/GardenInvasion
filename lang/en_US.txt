@@ -6,3 +6,4 @@ Bonus: = Bonus:
 Play = Play
 Level = Level
 Go Back = Go Back
+Pests = Pests
