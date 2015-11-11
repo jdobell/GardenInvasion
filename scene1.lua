@@ -45,6 +45,10 @@ local veggieBonus = 10
 local catsAchieved = 0
 local eaglesAchieved = 0
 local dogsAchieved = 0
+local targetBoard
+local target1Achieved = false
+local target2Achieved = false
+local target3Achieved = false
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -272,9 +276,34 @@ local sequences_veggies = {
     }
 }
 
-----------------------------Eagle sprite setup end----------------------------
+----------------------------veggie sprite setup end----------------------------
 
-----------------------------local variable setup------------------------------
+----------------------------target board sprite setup--------------------------
+
+local targetSheetOptions =
+{
+    width = 400,
+    height = 150,
+    numFrames = 4
+}
+
+local sequences_targetBoard = {
+    -- consecutive frames sequence
+    {
+        name = "targets",
+        start = 1,
+        count = 4,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_targetBoard = graphics.newImageSheet( "target-board.png", targetSheetOptions)
+
+----------------------------target board sprite setup end----------------------
+
+----------------------------local variable setup-------------------------------
 
 function scene:create( event )
 
@@ -317,7 +346,7 @@ function scene:create( event )
     time = levelConfig.levelTime
     timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, 10, 10, native.systemFont, 16)
 
-    local yHole = 440
+    local yHole = 400
     local xHole = 40
 
     --create vole hills on display
@@ -362,7 +391,7 @@ function scene:create( event )
     globalSceneGroup:insert(veggieGroup)
 
     local veggieX = 260
-    local veggieY = 450
+    local veggieY = 410
 
     for i=1, numberVeggies do
 
@@ -384,6 +413,11 @@ function scene:create( event )
             veggie:play()
         end
     end
+
+    targetBoard = display.newSprite(sceneGroup, sheet_targetBoard, sequences_targetBoard)
+    --targetBoard.width, targetBoard.height = 80, 30
+    targetBoard.x, targetBoard.y = display.contentWidth / 2, 440
+    targetBoard.anchorX = 0.5
 
     startingCountdown = display.newText("", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     startingCountdown.anchorX = 0.5
@@ -560,6 +594,18 @@ end
 function increaseScore()
     score = score + scorePerClick
     scoreAmountLabel.text = tonumber(score)
+
+    if(target1Achieved == false and score >= levelConfig.target1 and score < levelConfig.target2) then
+        target1Achieved = true
+        targetBoard:setFrame(2)
+    elseif(target2Achieved == false and score >= levelConfig.target2 and score < levelConfig.target3) then
+        target2Achieved = true
+        targetBoard:setFrame(3)
+    elseif(target3Achieved == false and score >= levelConfig.target3) then
+        target3Achieved = true
+        targetBoard:setFrame(4)
+    end
+
 end
 
 function countBonus()

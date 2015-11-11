@@ -19,7 +19,12 @@ catStreak = 2,
 deerStreak = 3,
 eagleStreak = 4,
 birdsInLevel = true,
-deerInLevel = true
+deerInLevel = true,
+-- gameType options - score, achieveStreaks, finishStreaks
+objective = { gameType = "finishStreaks", number = 0, cats = 2, eagles = 0, dogs = 0},
+target1 = 20,
+target2 = 40,
+target3 = 60
 }
 
 return configuration

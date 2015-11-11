@@ -22,9 +22,9 @@ birdsInLevel = false,
 deerInLevel = false,
 -- gameType options - score, achieveStreaks, finishStreaks
 objective = { gameType = "finishStreaks", number = 0, cats = 2, eagles = 0, dogs = 0},
-target1 = 300,
-target2 = 400,
-target3 = 500
+target1 = 10,
+target2 = 30,
+target3 = 50
 }
 
 return configuration
