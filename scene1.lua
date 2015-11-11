@@ -31,7 +31,7 @@ local bonus = 0
 local bonusLabel
 local bonusAmountLabel
 local bonusItems = true
-local gameOver
+local gameOverLabel
 local wiltedIndex
 local veggiesAffectedPerChange
 local maxLives
@@ -42,6 +42,9 @@ local catBonus = 25
 local eagleBonus = 50
 local dogBonus = 100
 local veggieBonus = 10
+local catsAchieved = 0
+local eaglesAchieved = 0
+local dogsAchieved = 0
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -429,10 +432,17 @@ function scene:create( event )
     bonusAmountLabel.alpha = 0
     sceneGroup:insert(bonusAmountLabel)
 
-    gameOver = display.newText(_s("Game Over"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
-    gameOver.anchorX = 0.5
-    gameOver.alpha = 0
-    sceneGroup:insert(gameOver)
+    gameOverLabel = display.newText(_s("Game Over"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    gameOverLabel.anchorX = 0.5
+    gameOverLabel.alpha = 0
+    sceneGroup:insert(gameOverLabel)
+end
+
+function gameOver()
+    --game over
+    transition.fadeIn(gameOverLabel, {time = 2000})
+    timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
+    cancelTimers()
 end
 
 function levelCountdown()
@@ -441,13 +451,83 @@ function levelCountdown()
 
     if(time == 0) then
         cancelTimers()
-        transition.fadeIn(levelComplete, {time = 2000})
-        transition.fadeIn(bonusLabel, {time = 2000})
-        transition.fadeIn(bonusAmountLabel, {time=2000})
 
-        --set wilted index to the last whole number for bonus counting
-        wiltedIndex = math.ceil(wiltedIndex)
-        timer.performWithDelay(1000, countBonus)
+        local levelCompleted = false
+        if(levelConfig.objective.gameType == "score") then
+            if(score > levelConfig.objective.number) then
+                levelCompleted = true
+            end
+        elseif(levelConfig.objective.gameType == "achieveStreaks") then
+            local streakComplete = false
+            if(levelConfig.objective.cats > 0) then
+                if(catsAchieved >= levelConfig.objective.cats) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+             if(levelConfig.objective.eagles > 0) then
+                if(eaglesAchieved >= levelConfig.objective.eagles) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+             if(levelConfig.objective.dogs > 0) then
+                if(dogsAchieved >= levelConfig.objective.dogs) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+            if(streakComplete == true) then
+                levelCompleted = true
+            end
+        elseif(levelConfig.objective.gameType == "finishStreaks") then
+             local streakComplete = false
+            
+            if(levelConfig.objective.cats > 0) then
+                if(numberCats >= levelConfig.objective.cats) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+             if(levelConfig.objective.eagles > 0) then
+                if(numberEagles >= levelConfig.objective.eagles) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+             if(levelConfig.objective.dogs > 0) then
+                if(numberDogs >= levelConfig.objective.dogs) then
+                    streakComplete = true
+                else
+                    streakComplete = false
+                end
+            end
+
+            if(streakComplete == true) then
+                levelCompleted = true
+            end
+        end
+
+        if(levelCompleted == true) then
+            transition.fadeIn(levelComplete, {time = 2000})
+            transition.fadeIn(bonusLabel, {time = 2000})
+            transition.fadeIn(bonusAmountLabel, {time=2000})
+            --set wilted index to the last whole number for bonus counting
+            wiltedIndex = math.ceil(wiltedIndex)
+            timer.performWithDelay(1000, countBonus)
+        else
+            gameOver()
+        end
     end
 end
 
@@ -466,9 +546,7 @@ function healthReduce()
 
     if(health == 0) then
         --game over
-        transition.fadeIn(gameOver, {time = 2000})
-        timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
-        cancelTimers()
+        gameOver()
     end
 end
 
@@ -820,6 +898,7 @@ end
 
 function catStreakAchieved()
     numberCats = numberCats + 1
+    catsAchieved = catsAchieved + 1
     local cat = display.newSprite(sheet_cat, sequences_cat)
     cat.x = 10
     cat.y = 270 + (numberCats * 10)
@@ -831,6 +910,7 @@ end
 
 function eagleStreakAchieved()
     numberEagles = numberEagles + 1
+    eaglesAchieved = eaglesAchieved + 1
     local eagle = display.newSprite(sheet_eagle, sequences_eagle)
     eagle.x = 280
     eagle.y = 30 + (numberEagles * 10)
@@ -843,6 +923,7 @@ end
 
 function deerStreakAchieved()
     numberDogs = numberDogs + 1
+    dogsAchieved = dogsAchieved + 1
     local dog = display.newSprite(sheet_dog, sequences_dog)
     dog.x = 280
     dog.y = 180 + (numberDogs * 10)

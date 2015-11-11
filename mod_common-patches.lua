@@ -29,7 +29,7 @@ function _M.new(sceneGroup)
 
 
 	commonGroup:insert(modalGroup)
-	_M:toggleModalVisible(false)
+	 _M:toggleModalVisible(false)
 
 end
 
@@ -41,7 +41,6 @@ function _M:toggleModalVisible(visible)
 	end
 
 	for i=1,modalGroup.numChildren do
-		print(modalGroup[i].alpha)
     	modalGroup[i].alpha = alpha
 	end 
 end
@@ -70,6 +69,7 @@ function _M.getLevelSelectModal(event)
 end
 
 function _M.goToLevel(level)
+	_M:toggleModalVisible(false)
     composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
 end
 
