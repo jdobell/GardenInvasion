@@ -416,7 +416,7 @@ function scene:create( event )
     end
 
     targetBoard = display.newSprite(sceneGroup, sheet_targetBoard, sequences_targetBoard)
-    --targetBoard.width, targetBoard.height = 80, 30
+    targetBoard.width, targetBoard.height = 80, 30
     targetBoard.x, targetBoard.y = display.contentWidth / 2, 440
     targetBoard.anchorX = 0.5
 
@@ -601,12 +601,15 @@ function increaseScore()
     if(target1Achieved == false and score >= levelConfig.target1 and score < levelConfig.target2) then
         target1Achieved = true
         targetBoard:setFrame(2)
+        targetBoard.width, targetBoard.height = 80, 30
     elseif(target2Achieved == false and score >= levelConfig.target2 and score < levelConfig.target3) then
         target2Achieved = true
         targetBoard:setFrame(3)
+        targetBoard.width, targetBoard.height = 80, 30
     elseif(target3Achieved == false and score >= levelConfig.target3) then
         target3Achieved = true
         targetBoard:setFrame(4)
+        targetBoard.width, targetBoard.height = 80, 30
     end
 
 end
@@ -653,8 +656,10 @@ function reviveVeggies()
         wiltedIndex = wiltedIndex + veggiesAffectedPerChange
 
         for i = math.floor((health - 1) * veggiesAffectedPerChange), math.ceil(wiltedIndex) do
-            veggies[i]:setSequence("revive")
-            veggies[i]:play()
+            if(i > 0) then
+                veggies[i]:setSequence("revive")
+                veggies[i]:play()
+            end
         end
     end
 end
