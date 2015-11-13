@@ -8,6 +8,7 @@ local sceneName = ...
 
 local composer = require( "composer" )
 local physic = require("physics")
+local file = require("mod_file-management")
 local globals = require("global-variables")
 local _s = globals._s
 
@@ -562,6 +563,12 @@ function levelCountdown()
             --set wilted index to the last whole number for bonus counting
             wiltedIndex = math.ceil(wiltedIndex)
             timer.performWithDelay(1000, countBonus)
+
+            local levelData = {}
+            levelData.level = levelConfig.level
+            levelData.score = score
+
+            file.saveLevelData(levelData, globals.levelDataFile)
         else
             gameOver()
         end

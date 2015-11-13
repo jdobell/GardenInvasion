@@ -10,6 +10,8 @@ local voleChit
 local birdChit
 local deerChit
 
+local file = require("mod_file-management")
+
 function _M.new(sceneGroup)
 	commonGroup = sceneGroup
 	modalGroup = display.newGroup()
@@ -67,6 +69,8 @@ end
 
 function _M:createMarker(x, y, level)
 	
+	local data = file.loadTable(globals.garden_invasion_levels)
+
 	local levelMarker = display.newImageRect( commonGroup, "level-marker.png", 50,50)
     levelMarker.x = x
     levelMarker.y = y
@@ -106,7 +110,8 @@ function _M.closeModal()
 end
 
 function _M.modalTouched(event)
-
+	---stop propagation through dialog as to act like a modal
+	return true
 end
 
 return _M
