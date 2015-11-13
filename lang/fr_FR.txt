@@ -1,0 +1,9 @@
+Score: = Le Score:
+Time: = Temps:
+Level Complete = Niveau Complete
+Game Over = Jeu Fini
+Bonus: = Prime:
+Play = Jouer
+Level = Niveau
+Go Back = Retourner
+Pests = Les pests

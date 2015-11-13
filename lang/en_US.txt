@@ -1,0 +1,9 @@
+Score: = Score:
+Time: = Time:
+Level Complete = Level Complete
+Game Over = Game Over
+Bonus: = Bonus:
+Play = Play
+Level = Level
+Go Back = Go Back
+Pests = Pests
