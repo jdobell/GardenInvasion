@@ -13,6 +13,9 @@ local deerChit
 local file = require("mod_file-management")
 
 function _M.new(sceneGroup)
+
+	file:setBox(globals.levelDataFile)
+
 	commonGroup = sceneGroup
 	modalGroup = display.newGroup()
 	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
@@ -68,8 +71,6 @@ function _M:toggleModalVisible(visible)
 end
 
 function _M:createMarker(x, y, level)
-	
-	local data = file.loadTable(globals.garden_invasion_levels)
 
 	local levelMarker = display.newImageRect( commonGroup, "level-marker.png", 50,50)
     levelMarker.x = x
@@ -78,6 +79,11 @@ function _M:createMarker(x, y, level)
     levelIdentifier.anchorX, levelIdentifier.anchorY = 0.5, 0.5
     levelMarker.level = level
     levelMarker:addEventListener("touch", _M.getLevelSelectModal)
+
+    local data = file.loadLevelData(level)
+	if(data ~= nil) then
+		local dataText = display.newText(commonGroup, data.score, x, y, globals.font, 16)
+	end
 end
 
 function _M.getLevelSelectModal(event)
@@ -102,6 +108,7 @@ end
 
 function _M.goToLevel(level)
 	_M:toggleModalVisible(false)
+	file = nil
     composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
 end
 

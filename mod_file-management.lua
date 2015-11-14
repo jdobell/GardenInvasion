@@ -1,55 +1,41 @@
+local GGData = require( "GGData" ) -- Assumes GGData.lua is in root folder
+local crypto = require( "crypto" )
+local box
+
 local file = {}
 
--- Function to save a table.&nbsp; Since game settings need to be saved from session to session, we will
--- use the Documents Directory
+function file:setBox(boxName)
+    box = GGData:new(boxName) -- You may name the 'box' anything you like.
 
-local json = require("json")
-function file.saveTable(t, filename)
-    local path = system.pathForFile( filename, system.DocumentsDirectory)
-    local file = io.open(path, "w")
-    if file then
-        local contents = json.encode(t)
-        file:write( contents )
-        io.close( file )
-        return true
+    local securityKey = "ThEoDa" -- Change this for each app
+
+    box:enableIntegrityControl( crypto.sha512, securityKey )
+
+    local corruptEntries = box:verifyIntegrity()
+
+end
+
+function file.loadLevelData(level)
+
+    local levelData = box:get("level"..level)
+
+    return levelData
+end
+
+function file.saveLevelData(t)
+    
+    local levelData = box:get("level"..t.level)
+
+    if(levelData == nil) then
+        box:set("level"..t.level, t)
+        box:save()
     else
-        return false
-    end
-end
+        if(t.score > levelData.score) then
+            levelData.score = t.score
 
-function file.loadTable(filename)
-    local path = system.pathForFile( filename, system.DocumentsDirectory)
-    local contents = ""
-    local myTable = {}
-    local file = io.open( path, "r" )
-    if file then
-         -- read all contents of file into a string
-         local contents = file:read( "*a" )
-         myTable = json.decode(contents);
-         io.close( file )
-         return myTable 
-    end
-    return nil
-end
-
-function file.saveLevelData(t, filename)
-    local contents = file.loadTable(filename)
-    local found = false
-
-    if(contents) then
-        for k,v in pairs(contents) do
-            if(v.level == t.level) then
-                contents[k].score = t.score
-                found = true
-            end
+            box:set("level"..t.level, levelData)
+            box:save()
         end
-    else
-        contents = {}
     end
-
-    if(found == false) then
-        table.insert(contents, t)
-    end
-    file.saveTable(contents, filename)
 end
 return file

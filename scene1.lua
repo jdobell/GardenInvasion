@@ -322,6 +322,7 @@ function scene:create( event )
 
     maxLives = levelConfig.maxLives
     health = levelConfig.startingHealth
+    file:setBox(globals.levelDataFile)
 
     -- this has to go here because the level config variable has to be set in scene:create
     local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
@@ -492,7 +493,7 @@ function levelCountdown()
 
         local levelCompleted = false
         if(levelConfig.objective.gameType == "score") then
-            if(score > levelConfig.objective.number) then
+            if(score >= levelConfig.objective.number) then
                 levelCompleted = true
             end
         elseif(levelConfig.objective.gameType == "achieveStreaks") then
@@ -568,7 +569,7 @@ function levelCountdown()
             levelData.level = levelConfig.level
             levelData.score = score
 
-            file.saveLevelData(levelData, globals.levelDataFile)
+            file.saveLevelData(levelData)
         else
             gameOver()
         end
