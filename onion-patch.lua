@@ -25,6 +25,7 @@ function scene:create( event )
     common:createMarker(5, 370, 1)
     common:createMarker(5, 270, 2)
 
+    common:toFront()
 end
 
 

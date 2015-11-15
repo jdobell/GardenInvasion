@@ -6,18 +6,34 @@
 
 local sceneName = ...
 
+local widget = require("widget")
 local composer = require( "composer" )
 
 -- Load scene with same root filename as this file
-local scene = composer.newScene( sceneName )
+local scene = composer.newScene()
 
 ---------------------------------------------------------------------------------
-
-local nextSceneButton
 
 function scene:create( event )
     local sceneGroup = self.view
 
+    -- local scrollView = widget.newScrollView
+    -- {
+    --     x = display.contentCenterX,
+    --     y = display.contentCenterY,
+    --     width = 200,
+    --     height = 300,
+    --     scrollHeight = 310,
+    --     horizontalScrollDisabled = true
+    -- }
+
+    --scrollView.anchorX, scrollView.anchorY = 0.5, 0.5
+
+-- Create a image and insert it into the scroll view
+    local background = display.newImageRect(sceneGroup, "navigate-patches.png", 200, 300 )
+    --scrollView:insert( background )
+
+    --sceneGroup:insert(scrollView)
     -- Called when the scene's view does not exist
     -- 
     -- INSERT code here to initialize the scene
@@ -30,33 +46,12 @@ function scene:show( event )
 
     if phase == "will" then
         -- Called when the scene is still off screen and is about to move on screen
-        local title = self:getObjectByTag( "Title" )
-        title.x = display.contentWidth / 2
-        title.y = display.contentHeight / 2
-        title.size = display.contentWidth / 10
-        local goToScene3Btn = self:getObjectByTag( "GoToScene3Btn" )
-        goToScene3Btn.x = display.contentWidth - 95
-        goToScene3Btn.y = display.contentHeight - 35
-        local goToScene3Text = self:getObjectByTag( "GoToScene3Text" )
-        goToScene3Text.x = display.contentWidth - 92
-        goToScene3Text.y = display.contentHeight - 35
+        
     elseif phase == "did" then
         -- Called when the scene is now on screen
         -- 
         -- INSERT code here to make the scene come alive
         -- e.g. start timers, begin animation, play audio, etc
-        nextSceneButton = self:getObjectByTag( "GoToScene3Btn" )
-        if nextSceneButton then
-        	-- touch listener for the button
-        	function nextSceneButton:touch ( event )
-        		local phase = event.phase
-        		if "ended" == phase then
-        			composer.gotoScene( "scene3", { effect = "fade", time = 300 } )
-        		end
-        	end
-        	-- add the touch event listener to the button
-        	nextSceneButton:addEventListener( "touch", nextSceneButton )
-        end
     end 
 end
 
@@ -71,9 +66,6 @@ function scene:hide( event )
         -- e.g. stop timers, stop animation, unload sounds, etc.)
     elseif phase == "did" then
         -- Called when the scene is now off screen
-		if nextSceneButton then
-			nextSceneButton:removeEventListener( "touch", nextSceneButton )
-		end
     end 
 end
 

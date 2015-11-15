@@ -324,6 +324,9 @@ function scene:create( event )
     health = levelConfig.startingHealth
     file:setBox(globals.levelDataFile)
 
+    local leftSide = display.screenOriginX + 7
+    local rightSide = display.contentWidth - display.screenOriginX - 7
+
     -- this has to go here because the level config variable has to be set in scene:create
     local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
 
@@ -331,23 +334,23 @@ function scene:create( event )
     globalSceneGroup:insert(background)
     
     healthBar = display.newImageRect("health-bar.png", 23, 230)
-    healthBar.x = 7
+    healthBar.x = leftSide
     healthBar.y = 50
 
     healthIndicatorMove = (healthBar.height - 30) / levelConfig.maxLives
     healthIndicatorStart = healthBar.contentBounds.yMax - 20
 
     healthIndicator = display.newImageRect("health-indicator.png", 23, 10)
-    healthIndicator.x = 7
+    healthIndicator.x = leftSide
     healthIndicator.y = healthIndicatorStart - (healthIndicatorMove * health)
 
     sceneGroup:insert(healthBar)
     sceneGroup:insert(healthIndicator)
 
-    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), 10, 30, globals.font, 16)
+    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), leftSide, 30, globals.font, 16)
     scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
     time = levelConfig.levelTime
-    timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, 10, 10, native.systemFont, 16)
+    timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, leftSide, 10, native.systemFont, 16)
 
     local yHole = 400
     local xHole = 40
@@ -393,7 +396,7 @@ function scene:create( event )
     local veggieGroup = display.newGroup()
     globalSceneGroup:insert(veggieGroup)
 
-    local veggieX = 260
+    local veggieX = rightSide - 60
     local veggieY = 410
 
     for i=1, numberVeggies do
@@ -564,12 +567,6 @@ function levelCountdown()
             --set wilted index to the last whole number for bonus counting
             wiltedIndex = math.ceil(wiltedIndex)
             timer.performWithDelay(1000, countBonus)
-
-            local levelData = {}
-            levelData.level = levelConfig.level
-            levelData.score = score
-
-            file.saveLevelData(levelData)
         else
             gameOver()
         end
@@ -651,7 +648,12 @@ function countBonus()
         bonusAmountLabel.text = bonus
         timer.performWithDelay(300, countBonus)
     else
-        scoreAmountLabel.text = score + bonus
+        score = score + bonus
+        local levelData = {}
+        levelData.level = levelConfig.level
+        levelData.score = score
+        file.saveLevelData(levelData)
+        scoreAmountLabel.text = score
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
 
@@ -708,7 +710,7 @@ end
 
 
 function voleTouchedListener( event )
-    if (event.phase == "ended" and gameEnded == false) then
+    if (event.phase == "began" and gameEnded == false) then
         local vole = event.target
 
         if(vole.isClickable) then
@@ -729,7 +731,7 @@ function voleTouchedListener( event )
 end
 
 function birdTouchedListener( event )
-    if (event.phase == "ended" and time > 0) then
+    if (event.phase == "began" and time > 0) then
         if(event.target.isClickable) then
             gasHit(event.target, "bird")
             increaseScore()
@@ -741,7 +743,7 @@ function birdTouchedListener( event )
 end
 
 function deerTouchedListener( event )
-    if (event.phase == "ended" and time > 0) then
+    if (event.phase == "began" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
             gasHit(deer, "deer")
