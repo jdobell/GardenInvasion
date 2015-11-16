@@ -10,6 +10,7 @@ local levelText
 local voleChit
 local birdChit
 local deerChit
+local navigateScrollView
 local navigatePatchButton
 local closeNavigationButton
 local closeNavImage = { type="image", filename="close-button.png" }
@@ -17,6 +18,7 @@ local closeNavImagePressed = { type="image", filename="close-button-pressed.png"
 
 local file = require("mod_file-management")
 local widget = require("widget")
+local patchConfig = require("patch-configuration")
 
 function _M.new(sceneGroup)
 
@@ -24,6 +26,7 @@ function _M.new(sceneGroup)
 
 	commonGroup = sceneGroup
 
+---------------------------------------------------------Navigation code start------------------------------------------------------------
 	navigatePatchButton = widget.newButton
 	{
 	    width = 70,
@@ -51,22 +54,25 @@ function _M.new(sceneGroup)
 	navigateModalBackground:addEventListener( "touch", _M.modalTouched )
 	navigateModalBackground:addEventListener( "tap", _M.modalTouched )
 
-	local scrollView = widget.newScrollView
+	navigateScrollView = widget.newScrollView
     {
         x = display.contentCenterX,
         y = display.contentCenterY,
         width = 200,
         height = 300,
-        scrollHeight = 310,
-        horizontalScrollDisabled = true
+        horizontalScrollDisabled = true,
+        hideBackground = true,
+        bottomPadding = 50
     }
 
-    scrollView.anchorX, scrollView.anchorY = 0.5, 0.5
+    navigateScrollView.anchorX, navigateScrollView.anchorY = 0.5, 0.5
 
 	local navigateModal = display.newImageRect(navigateModalGroup, "navigate-patches.png", 200, 300)
-	scrollView:insert( navigateModal )
+	navigateModal.x, navigateModal.y = display.contentCenterX, display.contentCenterY
+	navigateModal.anchorX, navigateModal.anchorY = 0.5, 0.5
+	navigateModalGroup:insert( navigateModal )
 
-    navigateModalGroup:insert(scrollView)
+    navigateModalGroup:insert(navigateScrollView)
 
 	closeNavigationButton = widget.newButton
 	{
@@ -78,6 +84,29 @@ function _M.new(sceneGroup)
 	}
     closeNavigationButton.x, closeNavigationButton.y = navigateModal.contentBounds.xMax -18, navigateModal.contentBounds.yMin - 15
     navigateModalGroup:insert(closeNavigationButton)
+
+    patchCommonButton = {
+    	width = 200,
+    	height = 40,
+    	onEvent = _M.goToPatch,
+    	defaultFile = "navigate-button.png",
+    	labelColor = {default = {0,0,0}, over = {1,1,1}},
+	}
+
+	for k, v in pairs(patchConfig) do
+		local buttonConfig = patchCommonButton
+		buttonConfig.label = _s(v.name)
+
+		local button = widget.newButton(buttonConfig)
+		button.anchorX = 0
+		button.y = 40 * v.world
+
+		button.path = v.path
+
+		navigateScrollView:insert(button)
+	end
+
+---------------------------------------------------------Navigation code end ---------------------------------------------------------
 
 	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
 	levelText:setFillColor( black )
@@ -215,6 +244,19 @@ function _M.navigatePatches(event)
 		closeNavigationButton.fill = closeNavImage
 		_M:toggleModalVisible(true, "navigate")
 	end
+end
+
+function _M.goToPatch(event)
+	if event.phase == "moved" then -- Check if you moved your finger while touching
+        local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
+        if dy > 5 then
+        	print(navigateScrollView)
+        	navigateScrollView:takeFocus(event)
+       end
+    elseif(event.phase == "ended") then
+    	_M.toggleModalVisible(false)
+    	composer.gotoScene( event.target.path)
+   end
 end
 
 return _M

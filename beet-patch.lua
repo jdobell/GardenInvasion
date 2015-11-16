@@ -20,7 +20,7 @@ function scene:create( event )
     sceneGroup = self.view
     common.new(sceneGroup)
 
-    local background = display.newImage( sceneGroup, "onion-patch.png", -30, -45 )
+    local background = display.newImage( sceneGroup, "beet-patch.png", -30, -45 )
 
     common:createMarker(5, 370, 1)
     common:createMarker(5, 270, 2)
@@ -56,7 +56,7 @@ function scene:hide( event )
         -- Insert code here to "pause" the scene.
         -- Example: stop timers, stop animation, stop audio, etc.
     elseif ( phase == "did" ) then
-        composer.removeScene( "onion-patch", false )
+        composer.removeScene( "beet-patch", false )
         -- Called immediately after scene goes off screen.
     end
 end
