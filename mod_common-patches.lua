@@ -11,6 +11,9 @@ local voleChit
 local birdChit
 local deerChit
 local navigatePatchButton
+local closeNavigationButton
+local closeNavImage = { type="image", filename="close-button.png" }
+local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
 
 local file = require("mod_file-management")
 local widget = require("widget")
@@ -21,13 +24,20 @@ function _M.new(sceneGroup)
 
 	commonGroup = sceneGroup
 
-	navigatePatchButton = display.newImageRect( commonGroup, "button-medium.png", 70, 30 )
-	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
-	navigatePatchButton.anchorX = 1
-	navigatePatchButton:addEventListener("touch", _M.navigatePatches)
+	navigatePatchButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.navigatePatches,
+	    label = _s("Patches"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	}
 
-	navigateText = display.newText( commonGroup, _s("Patches"), navigatePatchButton.contentBounds.xMin + navigatePatchButton.width / 2, navigatePatchButton.contentBounds.yMin + navigatePatchButton.height / 2, globals.font, 16 )
-	navigateText.anchorX, navigateText.anchorY = 0.5, 0.5
+	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
+	commonGroup:insert(navigatePatchButton)
+	navigatePatchButton.anchorX = 1
 
 	modalGroup = display.newGroup()
 	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
@@ -58,6 +68,17 @@ function _M.new(sceneGroup)
 
     navigateModalGroup:insert(scrollView)
 
+	closeNavigationButton = widget.newButton
+	{
+	    width = 30,
+	    height = 30,
+	    defaultFile = "close-button.png",
+	    overFile = "close-button-pressed.png",
+	    onEvent = _M.closeModal
+	}
+    closeNavigationButton.x, closeNavigationButton.y = navigateModal.contentBounds.xMax -18, navigateModal.contentBounds.yMin - 15
+    navigateModalGroup:insert(closeNavigationButton)
+
 	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
 	levelText:setFillColor( black )
 
@@ -76,17 +97,33 @@ function _M.new(sceneGroup)
 	deerChit.x, deerChit.y = 210, 100
 	birdChit.alpha = 0
 
-	local playButton = display.newImageRect( modalGroup, "button-medium.png", 70, 30 )
-	playButton.x, playButton.y = 220, 420
-	local playButtonText = display.newText(modalGroup, _s("Play"), playButton.x + playButton.width / 2, playButton.y + playButton.height / 2, globals.font, 16)
-	playButtonText.anchorX, playButtonText.anchorY = 0.5, 0.5
-	playButton:addEventListener( "touch", _M.goToLevel )
+	local playButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.goToLevel,
+	    label = _s("Play"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	}
 
-	local goBackButton = display.newImageRect( modalGroup, "button-medium.png", 70, 30 )
+	playButton.x, playButton.y = 220, 420
+	modalGroup:insert(playButton)
+
+	local goBackButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.closeModal,
+	    label = _s("Go Back"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	}
+
 	goBackButton.x, goBackButton.y = 140, 420
-	local goBackButtonText = display.newText(modalGroup, _s("Go Back"), goBackButton.x + goBackButton.width / 2, goBackButton.y + goBackButton.height / 2, globals.font, 16)
-	goBackButtonText.anchorX, goBackButtonText.anchorY = 0.5, 0.5
-	goBackButton:addEventListener( "touch", _M.closeModal )
+	modalGroup:insert(goBackButton)
 
 	commonGroup:insert(modalGroup)
 	commonGroup:insert(navigateModalGroup)
@@ -96,7 +133,6 @@ end
 
 function _M:toFront()
 	navigatePatchButton:toFront()
-	navigateText:toFront()
 	navigateModalGroup:toFront()
 end
 
@@ -115,7 +151,6 @@ function _M:toggleModalVisible(visible, modal)
 
 	if(modal == "navigate" or modal == nil) then
 		for i=1,navigateModalGroup.numChildren do
-			print(navigateModalGroup[i].alpha)
 	    	navigateModalGroup[i].alpha = alpha
 		end
 	end 
@@ -157,13 +192,17 @@ function _M.getLevelSelectModal(event)
     modalGroup:toFront()
 end
 
-function _M.goToLevel(level)
-	_M:toggleModalVisible(false)
-    composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
+function _M.goToLevel(event)
+	if(event.phase == "ended") then
+		_M:toggleModalVisible(false)
+    	composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
+    end
 end
 
-function _M.closeModal()
-	_M:toggleModalVisible(false)
+function _M.closeModal(event)
+	if(event.phase == "ended") then
+		_M:toggleModalVisible(false)
+	end
 end
 
 function _M.modalTouched(event)
@@ -172,8 +211,10 @@ function _M.modalTouched(event)
 end
 
 function _M.navigatePatches(event)
-
-	_M:toggleModalVisible(true, "navigate")
+	if(event.phase == "ended") then
+		closeNavigationButton.fill = closeNavImage
+		_M:toggleModalVisible(true, "navigate")
+	end
 end
 
 return _M
