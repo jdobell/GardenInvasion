@@ -35,7 +35,8 @@ function _M.new(sceneGroup)
 	    overFile = "button-medium-pressed.png",
 	    onEvent = _M.navigatePatches,
 	    label = _s("Patches"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
 	}
 
 	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
@@ -80,7 +81,8 @@ function _M.new(sceneGroup)
 	    height = 30,
 	    defaultFile = "close-button.png",
 	    overFile = "close-button-pressed.png",
-	    onEvent = _M.closeModal
+	    onEvent = _M.closeModal,
+	    font = globals.font
 	}
     closeNavigationButton.x, closeNavigationButton.y = navigateModal.contentBounds.xMax -18, navigateModal.contentBounds.yMin - 15
     navigateModalGroup:insert(closeNavigationButton)
@@ -91,6 +93,7 @@ function _M.new(sceneGroup)
     	onEvent = _M.goToPatch,
     	defaultFile = "navigate-button.png",
     	labelColor = {default = {0,0,0}, over = {1,1,1}},
+    	font = globals.font
 	}
 
 	for k, v in pairs(patchConfig) do
@@ -134,7 +137,8 @@ function _M.new(sceneGroup)
 	    overFile = "button-medium-pressed.png",
 	    onEvent = _M.goToLevel,
 	    label = _s("Play"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
 	}
 
 	playButton.x, playButton.y = 220, 420
@@ -148,7 +152,8 @@ function _M.new(sceneGroup)
 	    overFile = "button-medium-pressed.png",
 	    onEvent = _M.closeModal,
 	    label = _s("Go Back"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}}
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
 	}
 
 	goBackButton.x, goBackButton.y = 140, 420

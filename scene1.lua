@@ -51,6 +51,7 @@ local target1Achieved = false
 local target2Achieved = false
 local target3Achieved = false
 local gameEnded = false
+local groundBoosters
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -351,6 +352,8 @@ function scene:create( event )
     scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
     time = levelConfig.levelTime
     timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, leftSide, 10, native.systemFont, 16)
+
+    groundBoosters = levelConfig.groundBoosters
 
     local yHole = 400
     local xHole = 40
@@ -758,12 +761,63 @@ function deerTouchedListener( event )
 end
 
 function chooseRandomVole()
+    
+    math.randomseed(os.time())
+
     local randomHole = math.random(1, levelConfig.numberHoles)
 
     while holes[randomHole].vole.isMoving do
         randomHole = math.random(1, levelConfig.numberHoles)
     end        
-    startVoleMove(randomHole)
+
+    local groundBooster = math.random(1, levelConfig.groundBoosterFreq)
+
+    if(#groundBoosters > 0 and groundBooster == levelConfig.groundBoosterFreq) then
+        startGroundBoosterMove(randomHole)
+    else
+        startVoleMove(randomHole)
+    end
+end
+
+function startGroundBoosterMove(voleNumber)
+
+    local vole = holes[voleNumber].vole
+    --so that the vole doesn't try to come up while booster is occupying hole
+    vole.isMoving = true
+
+    local booster = math.random(1, #groundBoosters)
+    local boosterObject
+
+    if(groundBoosters[booster] == "zapAll") then
+        boosterObject = display.newImageRect(globalSceneGroup, "zapAll.png", 30, 30)
+        boosterObject.boosterType = "zapAll"
+    elseif(groundBoosters[booster] == "zapRow") then
+        boosterObject = display.newImageRect(globalSceneGroup, "zapRow.png", 30, 30)
+        boosterObject.boosterType = "zapRow"
+    elseif(groundBoosters[booster] == "speedUp") then
+        boosterObject = display.newImageRect(globalSceneGroup, "speedUp.png", 30, 30)
+        boosterObject.boosterType = "speedUp"
+    elseif(groundBoosters[booster] == "slowDown") then
+        boosterObject = display.newImageRect(globalSceneGroup, "slowDown.png", 30, 30)
+        boosterObject.boosterType = "slowDown"
+    end
+
+    boosterObject.x, boosterObject.y = vole.x, vole.y
+    boosterObject.voleNumber = voleNumber
+    boosterObject.transition = "up"
+
+    transition.to(boosterObject, {time=levelConfig.voleSpeed, y=boosterObject.y - 17, onComplete=startGroundBoosterReturn})
+end
+
+
+function startGroundBoosterReturn(obj)
+    
+    obj.transition = "down"
+    transition.to(obj, {time=levelConfig.voleSpeed, y=holes[obj.voleNumber].vole.y, onComplete=removeGroundBooster})
+end
+
+function removeGroundBooster(obj)
+    destroySelf(obj)
 end
 
 function startVoleMove(voleNumber)
