@@ -17,6 +17,7 @@ local scene = composer.newScene( sceneName )
 
 ---------------------------------------------------------------------------------
 
+local sceneGroup
 local globalSceneGroup
 local timers = {}
 local time
@@ -51,7 +52,9 @@ local target1Achieved = false
 local target2Achieved = false
 local target3Achieved = false
 local gameEnded = false
+local gameOverCompleted = false
 local groundBoosters
+local voleSpeed
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -317,12 +320,13 @@ function scene:create( event )
 
 ----------------load level-----------------
     levelConfig = event.params.levelConfig
-    local sceneGroup = self.view
+    sceneGroup = self.view
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
 
     maxLives = levelConfig.maxLives
     health = levelConfig.startingHealth
+    voleSpeed = levelConfig.voleSpeed
     file:setBox(globals.levelDataFile)
 
     local leftSide = display.screenOriginX + 7
@@ -383,7 +387,7 @@ function scene:create( event )
 
         holeGroup:insert(vole)
         holeGroup:insert(holeBottom)
-        globalSceneGroup:insert(holeGroup)
+        sceneGroup:insert(holeGroup)
 
         hole["bottom"] = holeBottom
         hole["vole"] = vole 
@@ -448,7 +452,7 @@ function scene:create( event )
     end
 
     ----first timer needs to wait 5 seconds to allow the 3,2,1 countdown to take place before this happens
-    timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(levelConfig.voleSpeed, chooseRandomVole, 0))end, 1)
+    timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(voleSpeed, chooseRandomVole, 0))end, 1)
     timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
 
 
@@ -483,10 +487,13 @@ end
 
 function gameOver()
     --game over
-    gameEnded = true
-    transition.fadeIn(gameOverLabel, {time = 2000})
-    timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
-    cancelTimers()
+    if(gameOverCompleted == false) then
+        gameOverCompleted = true
+        gameEnded = true
+        cancelTimers()
+        transition.fadeIn(gameOverLabel, {time = 2000})
+        timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
+    end
 end
 
 function levelCountdown()
@@ -706,7 +713,7 @@ function gasHit(creature, animal)
     gas.y = creature.y
 
     gas.alpha = 0
-    globalSceneGroup:insert(gas)
+    sceneGroup:insert(gas)
 
     transition.fadeIn(gas, {time=50, onComplete= function(gas) timer.performWithDelay(transition.fadeOut(gas, {time=500}), {time=500})end})
 end
@@ -761,8 +768,6 @@ function deerTouchedListener( event )
 end
 
 function chooseRandomVole()
-    
-    math.randomseed(os.time())
 
     local randomHole = math.random(1, levelConfig.numberHoles)
 
@@ -789,35 +794,61 @@ function startGroundBoosterMove(voleNumber)
     local boosterObject
 
     if(groundBoosters[booster] == "zapAll") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zapAll.png", 30, 30)
+        boosterObject = display.newImageRect(globalSceneGroup, "zapAll.png", 25, 25)
         boosterObject.boosterType = "zapAll"
+        boosterObject:addEventListener("touch", zapAllTouched)
     elseif(groundBoosters[booster] == "zapRow") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zapRow.png", 30, 30)
+        boosterObject = display.newImageRect(globalSceneGroup, "zapRow.png", 25, 25)
         boosterObject.boosterType = "zapRow"
+        boosterObject:addEventListener("touch", zapRowTouched)
     elseif(groundBoosters[booster] == "speedUp") then
-        boosterObject = display.newImageRect(globalSceneGroup, "speedUp.png", 30, 30)
+        boosterObject = display.newImageRect(globalSceneGroup, "speedUp.png", 25, 25)
         boosterObject.boosterType = "speedUp"
+        boosterObject:addEventListener("touch", speedUpTouched)
     elseif(groundBoosters[booster] == "slowDown") then
-        boosterObject = display.newImageRect(globalSceneGroup, "slowDown.png", 30, 30)
+        boosterObject = display.newImageRect(globalSceneGroup, "slowDown.png", 25, 25)
         boosterObject.boosterType = "slowDown"
+        boosterObject:addEventListener("touch", slowDownTouched)
     end
 
     boosterObject.x, boosterObject.y = vole.x, vole.y
     boosterObject.voleNumber = voleNumber
     boosterObject.transition = "up"
 
-    transition.to(boosterObject, {time=levelConfig.voleSpeed, y=boosterObject.y - 17, onComplete=startGroundBoosterReturn})
+    transition.to(boosterObject, {time=voleSpeed, y=boosterObject.y - 23, onComplete=startGroundBoosterReturn})
 end
 
 
 function startGroundBoosterReturn(obj)
     
     obj.transition = "down"
-    transition.to(obj, {time=levelConfig.voleSpeed, y=holes[obj.voleNumber].vole.y, onComplete=removeGroundBooster})
+    transition.to(obj, {time=voleSpeed, y=holes[obj.voleNumber].vole.y, onComplete=removeGroundBooster})
 end
 
 function removeGroundBooster(obj)
     destroySelf(obj)
+end
+
+function zapAllTouched(event)
+
+end
+
+function zapRowTouched(event)
+
+end
+
+function speedUpTouched(event)
+    voleSpeed = voleSpeed - 200
+    timer.performWithDelay(3000, function() 
+                                    voleSpeed = voleSpeed + 200 
+                                end, 1)
+end
+
+function slowDownTouched(event)
+    voleSpeed = voleSpeed + 200
+    timer.performWithDelay(3000, function() 
+                                    voleSpeed = voleSpeed - 200 
+                                end, 1)
 end
 
 function startVoleMove(voleNumber)
@@ -826,7 +857,7 @@ function startVoleMove(voleNumber)
     vole.isMoving = true
     vole.transition = "up"
     vole.hit = false
-    transition.to(holes[voleNumber].vole, {time=levelConfig.voleSpeed, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
+    transition.to(holes[voleNumber].vole, {time=voleSpeed, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
 end
 
 function startVoleReturn(obj)
@@ -835,7 +866,7 @@ function startVoleReturn(obj)
     
     local holeBottom = holes[obj.voleNumber].bottom
     
-    transition.to(obj, {time=levelConfig.voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable})
+    transition.to(obj, {time=voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable})
 end
 
 function removeVoleClickable(obj)
@@ -1023,7 +1054,7 @@ function catStreakAchieved()
 
     table.insert(cats,cat)
 
-    globalSceneGroup:insert(cat)
+    sceneGroup:insert(cat)
 end
 
 function eagleStreakAchieved()

@@ -26,13 +26,47 @@ function scene:create( event )
     common:createMarker(5, 270, 2)
 
     common:toFront()
+
+--     oMemoryLabel = display.newText( 
+--     { 
+--         text = '',
+--         x = display.contentWidth*0.33,
+--         y = display.contentHeight*0.33,
+--         font = 'Arial',
+--         fontSize = 32,
+--         align = "center"
+--     }
+-- )
+-- oMemoryLabel:setFillColor( 0 )
+-- sceneGroup:insert(oMemoryLabel)
+
+-- oTextureLabel = display.newText( 
+--     { 
+--         text = '',
+--         x = display.contentWidth*0.66,
+--         y = display.contentHeight*0.66,
+--         font = 'Arial',
+--         fontSize = 32,
+--         align = "center"
+--     }
+-- )
+-- oTextureLabel:setFillColor( 0 )
+-- sceneGroup:insert(oTextureLabel)
+
+-- timer.performWithDelay( 1000, checkMemory, 0 )
 end
 
+--To check available memory
+function checkMemory()
+    collectgarbage( "collect" )
+    oMemoryLabel.text = string.format( "M:%.2f KB", collectgarbage( "count" ) )
+    oTextureLabel.text = "T:"..(string.format( "%.2f KB", system.getInfo("textureMemoryUsed") / (1024 * 1024)) )
+end
 
 -- "scene:show()"
 function scene:show( event )
 
-    local sceneGroup = self.view
+    sceneGroup = self.view
     local phase = event.phase
 
     if ( phase == "will" ) then
@@ -47,8 +81,8 @@ end
 
 -- "scene:hide()"
 function scene:hide( event )
-
-    local sceneGroup = self.view
+    
+    sceneGroup = self.view
     local phase = event.phase
 
     if ( phase == "will" ) then
