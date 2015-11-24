@@ -55,6 +55,10 @@ local gameEnded = false
 local gameOverCompleted = false
 local groundBoosters
 local voleSpeed
+local numberZappedVoles = 0
+local zappedVoles = {}
+local voleTimer
+local volesPaused = false
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -309,6 +313,30 @@ local sheet_targetBoard = graphics.newImageSheet( "target-board.png", targetShee
 
 ----------------------------target board sprite setup end----------------------
 
+----------------------------Zap sprite setup --------------------------------
+local zapSheetOptions =
+{
+    width = 200,
+    height = 50,
+    numFrames = 3
+}
+
+local sequences_zap = {
+    -- consecutive frames sequence
+    {
+        name = "zap",
+        start = 1,
+        count = 3,
+        time = 300,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_zap = graphics.newImageSheet( "zap.png", zapSheetOptions )
+
+----------------------------Deer sprite setup end-----------------------------
+
 ----------------------------local variable setup-------------------------------
 
 function scene:create( event )
@@ -323,6 +351,8 @@ function scene:create( event )
     sceneGroup = self.view
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
+
+    physics.start()
 
     maxLives = levelConfig.maxLives
     health = levelConfig.startingHealth
@@ -452,7 +482,9 @@ function scene:create( event )
     end
 
     ----first timer needs to wait 5 seconds to allow the 3,2,1 countdown to take place before this happens
-    timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(voleSpeed, chooseRandomVole, 0))end, 1)
+    timer.performWithDelay(5000, function() 
+                                    voleTimer = timer.performWithDelay(voleSpeed, chooseRandomVole, 0)
+                                    table.insert(timers, voleTimer)end, 1)
     timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
 
 
@@ -769,18 +801,24 @@ end
 
 function chooseRandomVole()
 
-    local randomHole = math.random(1, levelConfig.numberHoles)
+    if(volesPaused == false and numberZappedVoles < levelConfig.numberHoles) then
+        local randomHole = math.random(1, levelConfig.numberHoles)
 
-    while holes[randomHole].vole.isMoving do
-        randomHole = math.random(1, levelConfig.numberHoles)
-    end        
+        local count = 0
+        while holes[randomHole].vole.isMoving and count <= 10 do
+            count = count + 1
+            randomHole = math.random(1, levelConfig.numberHoles)
+        end        
 
-    local groundBooster = math.random(1, levelConfig.groundBoosterFreq)
+        if(count <= 10) then
+            local groundBooster = math.random(1, levelConfig.groundBoosterFreq)
 
-    if(#groundBoosters > 0 and groundBooster == levelConfig.groundBoosterFreq) then
-        startGroundBoosterMove(randomHole)
-    else
-        startVoleMove(randomHole)
+            if(#groundBoosters > 0 and groundBooster == levelConfig.groundBoosterFreq) then
+                startGroundBoosterMove(randomHole)
+            else
+                startVoleMove(randomHole)
+            end
+        end
     end
 end
 
@@ -820,9 +858,8 @@ end
 
 
 function startGroundBoosterReturn(obj)
-    
-    obj.transition = "down"
-    transition.to(obj, {time=voleSpeed, y=holes[obj.voleNumber].vole.y, onComplete=removeGroundBooster})
+        obj.transition = "down"
+        transition.to(obj, {time=voleSpeed, y=holes[obj.voleNumber].vole.y, onComplete=removeGroundBooster})
 end
 
 function removeGroundBooster(obj)
@@ -834,21 +871,124 @@ function zapAllTouched(event)
 end
 
 function zapRowTouched(event)
+    if (event.phase == "began" and gameEnded == false) then
+        local voleNumber = event.target.voleNumber
+        local firstVole
+        local lastVole
 
+        if(voleNumber % 3 == 0) then
+            firstVole = voleNumber - 2
+            lastVole = voleNumber
+        elseif(voleNumber % 3 == 1) then
+            firstVole = voleNumber
+            lastVole = voleNumber + 2
+        elseif(voleNumber % 3 == 2) then
+            firstVole = voleNumber - 1
+            lastVole = voleNumber + 1
+        end
+
+        local zap = display.newSprite(sheet_zap, sequences_zap)
+        zap.x = holes[firstVole].bottom.contentBounds.xMin
+        zap.y = holes[firstVole].bottom.contentBounds.yMin - 35
+        zap:play()
+
+
+        for i = firstVole, lastVole do
+            local vole = holes[i].vole
+            
+            if(vole.zapped == nil) then
+                vole.zapped = {} 
+            end
+            
+            vole.zapped[voleNumber] = "on"
+
+            voleZapped(vole)
+        end
+
+        timer.performWithDelay(3000, function() 
+                                        destroySelf(zap)
+                                        voleZappedComplete(voleNumber) 
+                                    end)
+    end
+end
+
+function voleZapped(vole)
+    for key, value in pairs(zappedVoles) do
+    print(key, value)
+    end
+    if(zappedVoles[vole.voleNumber] == nil) then
+        transition.cancel("voleUp"..vole.voleNumber)
+        transition.cancel("voleDown"..vole.voleNumber)
+
+        zappedVoles[vole.voleNumber] = vole
+        numberZappedVoles = numberZappedVoles + 1
+
+        if(numberZappedVoles == levelConfig.numberHoles) then
+            if(volesPaused == false) then
+                timer.pause(voleTimer)
+                volesPaused = true
+            end
+        end
+        vole.isMoving = true
+        vole.transition = "up"
+        vole.hit = false
+        vole:setFrame(1)
+        transition.to(vole, {time=voleSpeed, y=holes[vole.voleNumber].bottom.y - 17})
+    end
+
+end
+
+function voleZappedComplete(voleNumber)
+
+    for k,v in pairs(zappedVoles) do
+
+        if(v.zapped[voleNumber] ~= nil) then
+
+            v.zapped[voleNumber] = nil
+            local done = true
+
+            for key, value in pairs(v.zapped) do
+                if(value == "on") then
+                    done = false
+                end
+            end
+
+            if(done) then
+                v.transition = "down"
+                local holeBottom = holes[v.voleNumber].bottom
+                transition.to(v, {time=voleSpeed, y=holeBottom.y + 3, onComplete=   function() 
+                                                                                        v.isMoving = false 
+                                                                                        if(volesPaused == true) then
+                                                                                            timer.resume(voleTimer)
+                                                                                            volesPaused = false
+                                                                                        end
+                                                                                    end})
+                v:setFrame(1)
+                v.isClickable = false
+
+                zappedVoles[k] = nil
+                numberZappedVoles = numberZappedVoles - 1
+            end
+        end
+    end
 end
 
 function speedUpTouched(event)
-    voleSpeed = voleSpeed - 200
-    timer.performWithDelay(3000, function() 
-                                    voleSpeed = voleSpeed + 200 
-                                end, 1)
+    if (event.phase == "began" and gameEnded == false) then
+        voleSpeed = voleSpeed - 200
+        timer.performWithDelay(3000, function() 
+                                        voleSpeed = voleSpeed + 200 
+                                    end, 1)
+    end
 end
 
 function slowDownTouched(event)
-    voleSpeed = voleSpeed + 200
-    timer.performWithDelay(3000, function() 
-                                    voleSpeed = voleSpeed - 200 
-                                end, 1)
+    if (event.phase == "began" and gameEnded == false) then
+        voleSpeed = voleSpeed + 200
+        timer.performWithDelay(3000, function() 
+                                        voleSpeed = voleSpeed - 200 
+                                    end, 1)
+    end
 end
 
 function startVoleMove(voleNumber)
@@ -857,7 +997,7 @@ function startVoleMove(voleNumber)
     vole.isMoving = true
     vole.transition = "up"
     vole.hit = false
-    transition.to(holes[voleNumber].vole, {time=voleSpeed, y=holes[voleNumber].vole.y - 17, onComplete=startVoleReturn})
+    transition.to(vole, {time=voleSpeed, y=vole.y - 17, onComplete=startVoleReturn, tag="voleUp"..voleNumber})
 end
 
 function startVoleReturn(obj)
@@ -866,7 +1006,7 @@ function startVoleReturn(obj)
     
     local holeBottom = holes[obj.voleNumber].bottom
     
-    transition.to(obj, {time=voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable})
+    transition.to(obj, {time=voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable, tag="voleDown"..obj.voleNumber})
 end
 
 function removeVoleClickable(obj)

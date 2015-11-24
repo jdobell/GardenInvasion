@@ -26,9 +26,9 @@ target1 = 10,
 target2 = 30,
 target3 = 50,
 --ground booster options - zapRow, zapAll, speedUp, slowDown
-groundBoosters = {"speedUp", "slowDown"},
+groundBoosters = {"zapRow"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
-groundBoosterFreq = 5
+groundBoosterFreq = 2
 }
 
 return configuration
