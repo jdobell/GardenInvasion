@@ -867,7 +867,42 @@ function removeGroundBooster(obj)
 end
 
 function zapAllTouched(event)
+    if (event.phase == "began" and gameEnded == false) then
+        local voleNumber = event.target.voleNumber
 
+        local zaps = {}
+
+        for i = 1, levelConfig.numberHoles do
+
+            if(i % 3 == 1) then
+                zap = display.newSprite(sheet_zap, sequences_zap)
+                zap.x = holes[i].bottom.contentBounds.xMin
+                zap.y = holes[i].bottom.contentBounds.yMin - 35
+                zap:play()
+
+                table.insert(zaps, zap)
+            end
+
+            local vole = holes[i].vole
+            
+            if(vole.zapped == nil) then
+                vole.zapped = {} 
+            end
+            
+            vole.zapped[voleNumber] = "on"
+
+            voleZapped(vole)
+        end
+
+        if(zap ~= nil) then
+            timer.performWithDelay(3000, function() 
+                                        for k, v in pairs(zaps) do
+                                            destroySelf(v)
+                                        end
+                                        voleZappedComplete(voleNumber) 
+                                    end)
+        end
+    end
 end
 
 function zapRowTouched(event)
@@ -913,9 +948,6 @@ function zapRowTouched(event)
 end
 
 function voleZapped(vole)
-    for key, value in pairs(zappedVoles) do
-    print(key, value)
-    end
     if(zappedVoles[vole.voleNumber] == nil) then
         transition.cancel("voleUp"..vole.voleNumber)
         transition.cancel("voleDown"..vole.voleNumber)
