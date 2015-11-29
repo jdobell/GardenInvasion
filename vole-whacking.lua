@@ -696,7 +696,13 @@ function countBonus()
         levelData.score = score
         file.saveLevelData(levelData)
         scoreAmountLabel.text = score
-        timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
+
+        if(gameOverCompleted == false) then
+            gameOverCompleted = true
+            gameEnded = true
+            cancelTimers()
+            timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
+        end
     end
 
 end
@@ -776,6 +782,7 @@ function birdTouchedListener( event )
     if (event.phase == "began" and time > 0) then
         if(event.target.isClickable) then
             gasHit(event.target, "bird")
+            increaseStreak()
             increaseScore()
             event.target.isClickable = false
             transition.cancel(event.target)
@@ -789,6 +796,7 @@ function deerTouchedListener( event )
         local deer = event.target
         if(deer.isClickable) then
             gasHit(deer, "deer")
+            increaseStreak()
             increaseScore()
             deer.isClickable = false
             deer:setSequence("hit")
@@ -962,6 +970,7 @@ function voleZapped(vole)
             end
         end
         vole.isMoving = true
+        vole.isClickable = false
         vole.transition = "up"
         vole.hit = false
         vole:setFrame(1)
@@ -1275,13 +1284,13 @@ function scene:hide( event )
     local sceneGroup = self.view
     local phase = event.phase
 
-    if event.phase == "will" then
+    if phase == "will" then
         -- Called when the scene is on screen and is about to move off screen
         --
         -- INSERT code here to pause the scene
         -- e.g. stop timers, stop animation, unload sounds, etc.)
     elseif phase == "did" then
-            composer.removeScene( "scene1", false )
+            composer.removeScene( "vole-whacking", false )
         -- Called when the scene is now off screen
 
     end 
