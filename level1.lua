@@ -29,7 +29,7 @@ target3 = 50,
 groundBoosters = {"zapRow", "zapAll"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
 groundBoosterFreq = 2,
-seedSpeed = 4000,
+seedSpeed = 2000,
 seedFrequency = 700,
 seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"}
 }

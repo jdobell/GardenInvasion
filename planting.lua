@@ -7,7 +7,7 @@
 local sceneName = ...
 
 local composer = require( "composer" )
-local physic = require("physics")
+local physics = require("physics")
 local file = require("mod_file-management")
 local globals = require("global-variables")
 local _s = globals._s
@@ -28,6 +28,9 @@ local levelConfig
 local seeds
 local conveyor
 local holes = {}
+local glow
+local currentHole
+local numberHolesCompleted = 0
 
 ----------------------------Conveyor sprite setup --------------------------------
 local conveyorSheetOptions =
@@ -62,6 +65,7 @@ function scene:create( event )
     sceneGroup:insert(globalSceneGroup)
 
     physics.start()
+    physics.setGravity( 0, 0 )
 
     file:setBox(globals.levelDataFile)
 
@@ -76,9 +80,13 @@ function scene:create( event )
     conveyor = display.newSprite( sheet_conveyor, sequences_conveyor)
     conveyor.x, conveyor.y = leftSide - 20, 100
     conveyor:play()
+
     globalSceneGroup:insert(conveyor)
 
     seeds = levelConfig.seeds
+
+    glow = display.newImageRect( globalSceneGroup, "planting-glow.png", 45, 25 )
+    glow.x, glow.y = -50, -50
 
     local yHole = 150
     local xHole = 40
@@ -97,6 +105,8 @@ function scene:create( event )
         end
 
         sceneGroup:insert(hole)
+
+        hole.completed = false
 
         holes[i] = hole;
     end
@@ -124,6 +134,7 @@ function scene:create( event )
     timer.performWithDelay(5000, function() 
                                     seedTimer = timer.performWithDelay(levelConfig.seedFrequency, dropRandomSeed, 0)
                                     table.insert(timers, seedTimer)
+                                    pickHole()
                                 end, 
                             1)
     timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
@@ -216,6 +227,8 @@ function dropRandomSeed()
     seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
     seed.anchorY = 1
 
+    physics.addBody(seed)
+
     seed.isClickable = true
 
     seed:addEventListener("touch", seedClicked)
@@ -231,9 +244,34 @@ function seedClicked(event)
         local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
         if (dy > 5 and seed.isClickable) then
             seed.isClickable = false
+
+            transition.cancel(seed)
+            seed.anchorY = 0.5
+
+            transition.to(seed, {time = 500, y=holes[currentHole].y})
             
        end
    end
+end
+
+function pickHole()
+
+    local holePicked = false
+
+    while holePicked == false do
+
+        local holeNumber = math.random( 1, levelConfig.numberHoles )
+
+        if(holes[holeNumber].completed == false) then
+            currentHole = holeNumber
+            holePicked = true
+            numberHolesCompleted = numberHolesCompleted + 1
+            glow.x, glow.y = holes[holeNumber].x, holes[holeNumber].y
+            physics.addBody(holes[holeNumber], {density = 100})
+        end
+
+    end
+
 end
 
 function scene:show( event )
