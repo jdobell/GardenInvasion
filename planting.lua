@@ -19,13 +19,21 @@ local levelConfig
 local sceneGroup
 local globalSceneGroup
 local timers = {}
-local seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"}
+local time
+local timeDisplay
+local scoreLabel
+local score = 0
+local scorePerClick = 10
+local levelConfig
+local seeds
+local conveyor
+local holes = {}
 
 ----------------------------Conveyor sprite setup --------------------------------
 local conveyorSheetOptions =
 {
-    width = 300,
-    height = 30,
+    width = 380,
+    height = 38,
     numFrames = 4
 }
 
@@ -57,12 +65,41 @@ function scene:create( event )
 
     file:setBox(globals.levelDataFile)
 
+    local leftSide = display.screenOriginX + 7
+    local rightSide = display.contentWidth - display.screenOriginX - 7
+
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
-    local conveyor = display.newSprite( sheet_conveyor, sequences_conveyor)
-    conveyor.x, conveyor.y = 10, 10
+    sequences_conveyor[1].time = levelConfig.seedSpeed / 35
+
+    conveyor = display.newSprite( sheet_conveyor, sequences_conveyor)
+    conveyor.x, conveyor.y = leftSide - 20, 100
     conveyor:play()
+    globalSceneGroup:insert(conveyor)
+
+    seeds = levelConfig.seeds
+
+    local yHole = 150
+    local xHole = 40
+
+    for i=1, levelConfig.numberHoles do
+
+        local hole = display.newImageRect("planting-hole.png", 40, 20)
+        hole.x = xHole 
+        hole.y = yHole
+
+        xHole = xHole + 100
+
+        if i % 3 == 0 then
+            yHole = yHole + 55
+            xHole = xHole - 300
+        end
+
+        sceneGroup:insert(hole)
+
+        holes[i] = hole;
+    end
 
     startingCountdown = display.newText("", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
     startingCountdown.anchorX = 0.5
@@ -85,9 +122,36 @@ function scene:create( event )
 
     ----first timer needs to wait 5 seconds to allow the 3,2,1 countdown to take place before this happens
     timer.performWithDelay(5000, function() 
-                                    seedTimer = timer.performWithDelay(levelConfig.seedSpeed, dropRandomSeed, 0)
-                                    table.insert(timers, seedTimer)end, 1)
+                                    seedTimer = timer.performWithDelay(levelConfig.seedFrequency, dropRandomSeed, 0)
+                                    table.insert(timers, seedTimer)
+                                end, 
+                            1)
     timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
+
+    scoreLabel = display.newText(globalSceneGroup, _s("Score:"), leftSide, 30, globals.font, 16)
+    scoreAmountLabel = display.newText( globalSceneGroup, 0, scoreLabel.contentBounds.xMax + 2, 30, native.systemFont, 16)
+    time = levelConfig.levelTime
+    timeDisplay = display.newText( globalSceneGroup, _s("Time:")..time, leftSide, 10, native.systemFont, 16)
+
+    -----set up end of game labels
+    levelComplete = display.newText(_s("Level Complete"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    levelComplete.anchorX = 0.5
+    levelComplete.alpha = 0
+    sceneGroup:insert(levelComplete)
+
+    bonusLabel = display.newText(_s("Bonus:"), (display.contentWidth / 2) - 20, levelComplete.contentBounds.yMax + 10, native.systemFont, 24)
+    bonusLabel.anchorX = 0.5
+    bonusLabel.alpha = 0
+    sceneGroup:insert(bonusLabel)
+
+    bonusAmountLabel = display.newText("0", bonusLabel.contentBounds.xMax + 3, bonusLabel.y, native.systemFont, 24)
+    bonusAmountLabel.alpha = 0
+    sceneGroup:insert(bonusAmountLabel)
+
+    gameOverLabel = display.newText(_s("Game Over"), display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
+    gameOverLabel.anchorX = 0.5
+    gameOverLabel.alpha = 0
+    sceneGroup:insert(gameOverLabel)
 
     -- Called when the scene's view does not exist
     -- 
@@ -138,6 +202,38 @@ function gameOver()
         transition.fadeIn(gameOverLabel, {time = 2000})
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
+end
+
+function destroySelf(obj)
+    obj:removeSelf()
+end
+
+function dropRandomSeed()
+
+    local seedNumber = math.random(1, #seeds)
+
+    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 30, 30)
+    seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
+    seed.anchorY = 1
+
+    seed.isClickable = true
+
+    seed:addEventListener("touch", seedClicked)
+
+    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete=destroySelf})
+end
+
+function seedClicked(event)
+
+    local seed = event.target
+
+    if event.phase == "moved" then -- Check if you moved your finger while touching
+        local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
+        if (dy > 5 and seed.isClickable) then
+            seed.isClickable = false
+            
+       end
+   end
 end
 
 function scene:show( event )

@@ -6,7 +6,7 @@ levelTime = 25,
 startingHealth = 10,
 maxLives = 30,
 veggie = "beet.png",
-numberHoles = 9,
+numberHoles = 15,
 voleFrequency = 1000,
 voleSpeed = 1000,
 birdFrequencyLow = 2000,
@@ -28,7 +28,10 @@ target3 = 50,
 --ground booster options - zapRow, zapAll, speedUp, slowDown
 groundBoosters = {"zapRow", "zapAll"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
-groundBoosterFreq = 2
+groundBoosterFreq = 2,
+seedSpeed = 4000,
+seedFrequency = 700,
+seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"}
 }
 
 return configuration

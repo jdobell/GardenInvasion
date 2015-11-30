@@ -255,7 +255,6 @@ function _M.goToPatch(event)
 	if event.phase == "moved" then -- Check if you moved your finger while touching
         local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
         if dy > 5 then
-        	print(navigateScrollView)
         	navigateScrollView:takeFocus(event)
        end
     elseif(event.phase == "ended") then
