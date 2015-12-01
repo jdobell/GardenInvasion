@@ -107,6 +107,7 @@ function scene:create( event )
         sceneGroup:insert(hole)
 
         hole.completed = false
+        hole.holeNumber = i
 
         holes[i] = hole;
     end
@@ -226,12 +227,15 @@ function dropRandomSeed()
     local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 30, 30)
     seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
     seed.anchorY = 1
+    seed.seed = seeds[seedNumber]
 
     physics.addBody(seed)
 
     seed.isClickable = true
 
     seed:addEventListener("touch", seedClicked)
+    seed.collision = seedCollision
+    seed:addEventListener( "collision", seed )
 
     transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete=destroySelf})
 end
@@ -248,13 +252,45 @@ function seedClicked(event)
             transition.cancel(seed)
             seed.anchorY = 0.5
 
-            transition.to(seed, {time = 500, y=holes[currentHole].y})
+            transition.to(seed, {time = 500, y=holes[currentHole].y, onComplete=seedMissed})
             
        end
    end
 end
 
+function seedMissed(seed)
+    timer.performWithDelay( 100, function()
+        if not seed.collided then
+            destroySelf(seed)
+        end
+    end)
+end
+
+function seedCollision(self, event)
+
+    if(self.seed == levelConfig.targetSeed and event.other.holeNumber == currentHole) then
+        print("success")
+    else
+        print("failure")
+    end
+
+    self.collided = true
+
+    if(numberHolesCompleted < levelConfig.numberHoles) then
+        timer.performWithDelay(10, function() pickHole() end)
+    end
+
+    timer.performWithDelay( 10, function() destroySelf(self) end )
+
+    return true
+end
+
 function pickHole()
+
+    if(holes[currentHole] ~= nil) then
+        print(holes[currentHole].holeNumber)
+        print(physics.removeBody(holes[currentHole]))
+    end
 
     local holePicked = false
 
@@ -263,6 +299,7 @@ function pickHole()
         local holeNumber = math.random( 1, levelConfig.numberHoles )
 
         if(holes[holeNumber].completed == false) then
+            holes[holeNumber].completed = true
             currentHole = holeNumber
             holePicked = true
             numberHolesCompleted = numberHolesCompleted + 1
