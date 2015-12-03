@@ -55,6 +55,30 @@ local sheet_conveyor = graphics.newImageSheet( "conveyor.png", conveyorSheetOpti
 
 ----------------------------Conveyor sprite setup end-----------------------------
 
+----------------------------Hole sprite setup --------------------------------
+local holeSheetOptions =
+{
+    width = 40,
+    height = 20,
+    numFrames = 3
+}
+
+local sequences_hole = {
+    -- consecutive frames sequence
+    {
+        name = "hole",
+        start = 1,
+        count = 3,
+        time = 300,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_hole = graphics.newImageSheet( "planting-hole.png", holeSheetOptions )
+
+----------------------------Hole sprite setup end-----------------------------
+
 ---------------------------------------------------------------------------------
 
 function scene:create( event )
@@ -92,8 +116,8 @@ function scene:create( event )
     local xHole = 40
 
     for i=1, levelConfig.numberHoles do
-
-        local hole = display.newImageRect("planting-hole.png", 40, 20)
+    
+        local hole = display.newSprite(sheet_hole, sequences_hole)
         hole.x = xHole 
         hole.y = yHole
 
@@ -262,23 +286,31 @@ function seedMissed(seed)
     timer.performWithDelay( 100, function()
         if not seed.collided then
             destroySelf(seed)
+            holes[currentHole]:setFrame(3)
+            nextHole()
         end
     end)
+end
+
+function nextHole()
+    if(numberHolesCompleted < levelConfig.numberHoles) then
+        timer.performWithDelay(10, function() pickHole() end)
+    end
 end
 
 function seedCollision(self, event)
 
     if(self.seed == levelConfig.targetSeed and event.other.holeNumber == currentHole) then
+        holes[currentHole]:setFrame(2)
         print("success")
     else
+        holes[currentHole]:setFrame(3)
         print("failure")
     end
 
     self.collided = true
 
-    if(numberHolesCompleted < levelConfig.numberHoles) then
-        timer.performWithDelay(10, function() pickHole() end)
-    end
+    nextHole()
 
     timer.performWithDelay( 10, function() destroySelf(self) end )
 
