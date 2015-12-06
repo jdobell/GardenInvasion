@@ -8,6 +8,7 @@ local sceneName = ...
 
 local composer = require( "composer" )
 local physics = require("physics")
+--physics.setDrawMode( "hybrid" )
 local file = require("mod_file-management")
 local globals = require("global-variables")
 local _s = globals._s
@@ -244,6 +245,11 @@ function destroySelf(obj)
     obj:removeSelf()
 end
 
+function increaseScore()
+    score = score + scorePerClick
+    scoreAmountLabel.text = tonumber(score)
+end
+
 function dropRandomSeed()
 
     local seedNumber = math.random(1, #seeds)
@@ -276,7 +282,7 @@ function seedClicked(event)
             transition.cancel(seed)
             seed.anchorY = 0.5
 
-            transition.to(seed, {time = 500, y=holes[currentHole].y, onComplete=seedMissed})
+            transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
             
        end
    end
@@ -301,11 +307,12 @@ end
 function seedCollision(self, event)
 
     if(self.seed == levelConfig.targetSeed and event.other.holeNumber == currentHole) then
+        --success, right seed collided
         holes[currentHole]:setFrame(2)
-        print("success")
+        increaseScore()
     else
+        --failure -- wrong seed
         holes[currentHole]:setFrame(3)
-        print("failure")
     end
 
     self.collided = true
@@ -319,9 +326,8 @@ end
 
 function pickHole()
 
-    if(holes[currentHole] ~= nil) then
-        print(holes[currentHole].holeNumber)
-        print(physics.removeBody(holes[currentHole]))
+    if(currentHole ~= nil) then
+        physics.removeBody( holes[currentHole])
     end
 
     local holePicked = false
@@ -336,7 +342,7 @@ function pickHole()
             holePicked = true
             numberHolesCompleted = numberHolesCompleted + 1
             glow.x, glow.y = holes[holeNumber].x, holes[holeNumber].y
-            physics.addBody(holes[holeNumber], {density = 100})
+            physics.addBody(holes[holeNumber], {density = 100, shape={0,-3, 5,-2, 7,0, 5,2, 0,3, -5,2, -7,0, -5,-2}})
         end
 
     end
