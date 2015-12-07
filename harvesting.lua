@@ -27,61 +27,9 @@ local score = 0
 local scorePerClick = 10
 local streak = 0
 local levelConfig
-local gameEnded = false
-local seeds
-local conveyor
-local holes = {}
-local glow
-local currentHole
 local numberHolesCompleted = 0
-local bonusPerSecond = 10
+local holes = {}
 
-----------------------------Conveyor sprite setup --------------------------------
-local conveyorSheetOptions =
-{
-    width = 380,
-    height = 38,
-    numFrames = 4
-}
-
-local sequences_conveyor = {
-    -- consecutive frames sequence
-    {
-        name = "conveyorMove",
-        frames = {4,3,2,1},
-        time = 300,
-        loopCount = 0,
-        loopDirection = "reverse"
-    }
-}
-
-local sheet_conveyor = graphics.newImageSheet( "conveyor.png", conveyorSheetOptions )
-
-----------------------------Conveyor sprite setup end-----------------------------
-
-----------------------------Hole sprite setup --------------------------------
-local holeSheetOptions =
-{
-    width = 40,
-    height = 20,
-    numFrames = 3
-}
-
-local sequences_hole = {
-    -- consecutive frames sequence
-    {
-        name = "hole",
-        start = 1,
-        count = 3,
-        time = 300,
-        loopCount = 1,
-        loopDirection = "forward"
-    }
-}
-
-local sheet_hole = graphics.newImageSheet( "planting-hole.png", holeSheetOptions )
-
-----------------------------Hole sprite setup end-----------------------------
 
 ---------------------------------------------------------------------------------
 
@@ -92,9 +40,6 @@ function scene:create( event )
     globalSceneGroup = display.newGroup()
     sceneGroup:insert(globalSceneGroup)
 
-    physics.start()
-    physics.setGravity( 0, 0 )
-
     file:setBox(globals.levelDataFile)
 
     local leftSide = display.screenOriginX + 7
@@ -103,18 +48,6 @@ function scene:create( event )
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
-    sequences_conveyor[1].time = levelConfig.seedSpeed / 35
-
-    conveyor = display.newSprite( sheet_conveyor, sequences_conveyor)
-    conveyor.x, conveyor.y = leftSide - 20, 100
-    conveyor:play()
-
-    globalSceneGroup:insert(conveyor)
-
-    seeds = levelConfig.seeds
-
-    glow = display.newImageRect( globalSceneGroup, "planting-glow.png", 45, 25 )
-    glow.x, glow.y = -50, -50
 
     local yHole = 150
     local xHole = 40
@@ -160,12 +93,14 @@ function scene:create( event )
     end
 
     ----first timer needs to wait 5 seconds to allow the 3,2,1 countdown to take place before this happens
-    timer.performWithDelay(5000, function() 
-                                    seedTimer = timer.performWithDelay(levelConfig.seedFrequency, dropRandomSeed, 0)
-                                    table.insert(timers, seedTimer)
-                                    pickHole()
-                                end, 
-                            1)
+
+    -- timer.performWithDelay(5000, function() 
+    --                                 seedTimer = timer.performWithDelay(levelConfig.seedFrequency, dropRandomSeed, 0)
+    --                                 table.insert(timers, seedTimer)
+    --                                 pickHole()
+    --                             end, 
+    --                         1)
+
     timer.performWithDelay(5000, function() table.insert(timers, timer.performWithDelay(1000, levelCountdown, 0)) end, 1)
 
     scoreLabel = display.newText(globalSceneGroup, _s("Score:"), leftSide, 30, globals.font, 16)
@@ -205,36 +140,23 @@ function levelCountdown()
 
     if(time == 0) then
         gameEnded = true
-        endGame()
-    end
-end
+        cancelTimers()
 
-function endGame()
-    
-    cancelTimers()
-
-    for k,v in pairs(holes) do
-        if(v.completed == false) then
-             v:setFrame(3)
+        local levelCompleted = false
+        if(levelConfig.objective.gameType == "harvesting") then
+            if(score >= levelConfig.objective.number) then
+                levelCompleted = true
+            end
         end
-    end
 
-    destroySelf(glow)
-
-    local levelCompleted = false
-    if(levelConfig.objective.gameType == "planting") then
-        if(score >= levelConfig.objective.number) then
-            levelCompleted = true
+        if(levelCompleted == true) then
+            transition.fadeIn(levelComplete, {time = 2000})
+            transition.fadeIn(bonusLabel, {time = 2000})
+            transition.fadeIn(bonusAmountLabel, {time=2000})
+            timer.performWithDelay(1000, countBonus)
+        else
+            gameOver()
         end
-    end
-
-    if(levelCompleted == true) then
-        transition.fadeIn(levelComplete, {time = 2000})
-        transition.fadeIn(bonusLabel, {time = 2000})
-        transition.fadeIn(bonusAmountLabel, {time=2000})
-        timer.performWithDelay(1000, countBonus)
-    else
-        gameOver()
     end
 end
 
@@ -244,32 +166,15 @@ function cancelTimers()
     end
 end
 
-function gameOver(lost)
+function gameOver()
     --game over
     if(gameOverCompleted == false) then
         gameOverCompleted = true
         gameEnded = true
         cancelTimers()
-        if(lost)then
-            transition.fadeIn(gameOverLabel, {time = 2000})
-        end
+        transition.fadeIn(gameOverLabel, {time = 2000})
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
-end
-
-function countBonus()
-
-    local bonus = time * bonusPerSecond
-
-    score = score + bonus
-    bonusAmountLabel.text = bonus
-    local levelData = {}
-    levelData.level = levelConfig.level
-    levelData.score = score
-    file.saveLevelData(levelData)
-    scoreAmountLabel.text = score
-
-    gameOver(true)
 end
 
 function destroySelf(obj)
@@ -293,7 +198,7 @@ function dropRandomSeed()
 
     local seedNumber = math.random(1, #seeds)
 
-    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 25, 25)
+    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 30, 30)
     seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
     seed.anchorY = 1
     seed.seed = seeds[seedNumber]
@@ -314,16 +219,15 @@ function seedClicked(event)
     local seed = event.target
 
     if event.phase == "moved" then -- Check if you moved your finger while touching
-        if(time > 0) then
-            local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
-            if (dy > 5 and seed.isClickable) then
-                seed.isClickable = false
+        local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
+        if (dy > 5 and seed.isClickable) then
+            seed.isClickable = false
 
-                transition.cancel(seed)
-                seed.anchorY = 0.5
+            transition.cancel(seed)
+            seed.anchorY = 0.5
 
-                transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
-            end
+            transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
+            
        end
    end
 end
@@ -333,15 +237,8 @@ function seedMissed(seed)
         if not seed.collided then
             destroySelf(seed)
             holes[currentHole]:setFrame(3)
-            holes[currentHole].completed = true
-            numberHolesCompleted = numberHolesCompleted + 1
             resetStreak()
-print(numberHolesCompleted, levelConfig.numberHoles)
-            if(numberHolesCompleted == levelConfig.numberHoles) then
-                endGame()
-            else
-                nextHole()
-            end
+            nextHole()
         end
     end)
 end
@@ -367,14 +264,7 @@ function seedCollision(self, event)
 
     self.collided = true
 
-    holes[currentHole].completed = true
-    numberHolesCompleted = numberHolesCompleted + 1
-
-    if(numberHolesCompleted == levelConfig.numberHoles) then
-        endGame()
-    else
-        nextHole()
-    end
+    nextHole()
 
     timer.performWithDelay( 10, function() destroySelf(self) end )
 
@@ -394,8 +284,10 @@ function pickHole()
         local holeNumber = math.random( 1, levelConfig.numberHoles )
 
         if(holes[holeNumber].completed == false) then
+            holes[holeNumber].completed = true
             currentHole = holeNumber
             holePicked = true
+            numberHolesCompleted = numberHolesCompleted + 1
             glow.x, glow.y = holes[holeNumber].x, holes[holeNumber].y
             physics.addBody(holes[holeNumber], {density = 100, shape={0,-3, 5,-2, 7,0, 5,2, 0,3, -5,2, -7,0, -5,-2}})
         end

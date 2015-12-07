@@ -131,7 +131,7 @@ local deerSheetOptions =
 }
 
 local sequences_deer = {
-    -- consecutive frames sequence
+    -- consecutive frames sequences
     {
         name = "walking",
         start = 1,
@@ -517,13 +517,15 @@ function scene:create( event )
     sceneGroup:insert(gameOverLabel)
 end
 
-function gameOver()
+function gameOver(lost)
     --game over
     if(gameOverCompleted == false) then
         gameOverCompleted = true
         gameEnded = true
         cancelTimers()
-        transition.fadeIn(gameOverLabel, {time = 2000})
+        if(lost) then
+            transition.fadeIn(gameOverLabel, {time = 2000})
+        end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
 end
@@ -610,7 +612,7 @@ function levelCountdown()
             wiltedIndex = math.ceil(wiltedIndex)
             timer.performWithDelay(1000, countBonus)
         else
-            gameOver()
+            gameOver(false)
         end
     end
 end
@@ -630,7 +632,7 @@ function healthReduce()
 
     if(health == 0) then
         --game over
-        gameOver()
+        gameOver(true)
     end
 end
 
@@ -697,12 +699,7 @@ function countBonus()
         file.saveLevelData(levelData)
         scoreAmountLabel.text = score
 
-        if(gameOverCompleted == false) then
-            gameOverCompleted = true
-            gameEnded = true
-            cancelTimers()
-            timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
-        end
+        gameOver(true)
     end
 
 end
