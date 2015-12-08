@@ -28,6 +28,7 @@ local scorePerClick = 10
 local streak = 0
 local levelConfig
 local gameEnded = false
+local gameOverCompleted = false
 local seeds
 local conveyor
 local holes = {}
@@ -336,7 +337,7 @@ function seedMissed(seed)
             holes[currentHole].completed = true
             numberHolesCompleted = numberHolesCompleted + 1
             resetStreak()
-print(numberHolesCompleted, levelConfig.numberHoles)
+
             if(numberHolesCompleted == levelConfig.numberHoles) then
                 endGame()
             else

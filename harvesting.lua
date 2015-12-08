@@ -29,6 +29,9 @@ local streak = 0
 local levelConfig
 local numberHolesCompleted = 0
 local holes = {}
+local veggies = {}
+local touchStart
+local touchEnd
 
 
 ---------------------------------------------------------------------------------
@@ -54,9 +57,13 @@ function scene:create( event )
 
     for i=1, levelConfig.numberHoles do
     
-        local hole = display.newSprite(sheet_hole, sequences_hole)
+        local veggie = display.newImageRect( sceneGroup, levelConfig.veggie, 30, 14 )
+        local hole = display.newImageRect( sceneGroup, "hole-bottom.png", 40, 20 )
         hole.x = xHole 
         hole.y = yHole
+
+        veggie.x = xHole + 3
+        veggie.y = yHole - 10
 
         xHole = xHole + 100
 
@@ -65,12 +72,16 @@ function scene:create( event )
             xHole = xHole - 300
         end
 
-        sceneGroup:insert(hole)
-
-        hole.completed = false
+        veggie.completed = false
+        veggie.holeNumber = i
         hole.holeNumber = i
 
-        holes[i] = hole;
+        holes[i] = hole
+        veggies[i] = veggie
+
+        veggie:addEventListener("touch", veggieClicked)
+        hole:addEventListener("touch", cancelTouch)
+        hole:addEventListener("tap", cancelTouch)
     end
 
     startingCountdown = display.newText("", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
@@ -194,42 +205,75 @@ function resetStreak()
     streak = 0
 end
 
-function dropRandomSeed()
-
-    local seedNumber = math.random(1, #seeds)
-
-    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 30, 30)
-    seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
-    seed.anchorY = 1
-    seed.seed = seeds[seedNumber]
-
-    physics.addBody(seed)
-
-    seed.isClickable = true
-
-    seed:addEventListener("touch", seedClicked)
-    seed.collision = seedCollision
-    seed:addEventListener( "collision", seed )
-
-    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete=destroySelf})
+function cancelTouch(event)
+    return true
 end
 
-function seedClicked(event)
+function veggieClicked(event)
 
-    local seed = event.target
+    local veggie = event.target
 
-    if event.phase == "moved" then -- Check if you moved your finger while touching
-        local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
-        if (dy > 5 and seed.isClickable) then
-            seed.isClickable = false
+    if event.phase == "began" then
 
-            transition.cancel(seed)
-            seed.anchorY = 0.5
+        display.getCurrentStage():setFocus( veggie )
+        veggie.isFocus = true
 
-            transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
+        touchStart = system.getTimer()
+    elseif veggie.isFocus then
+        if event.phase == "moved" and veggie.completed == false then
+            local dy = math.abs( event.y - event.yStart )
+
+            if (dy > 10) then
+                touchEnd = system.getTimer()
+
+                local touchTime = touchEnd - touchStart
+                print(touchTime)
+
+                if(touchTime < globals.touchFast) then
+                    print("fast")
+                elseif(touchTime >= globals.touchFast and touchTime <= globals.touchSlow) then
+                    print("good")
+                elseif(touchTime > globals.touchSlow) then
+                    print("slow")
+                end
+
+                veggie.completed = true
+                display.getCurrentStage():setFocus( nil )
+                veggie.isFocus = false
+            end
+
+            --transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
+        elseif event.phase == "ended" or event.phase == "cancelled" then
+
+            display.getCurrentStage():setFocus( nil )
+            veggie.isFocus = false
+        end
+    end
+
+    return true
+
+--     if event.phase == "moved" then -- Check if you moved your finger while touching
+--         local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
+--         if(dy == 1) then
+--             touchStart = system.getTimer()
+--         end
+--         if (dy > 10) then
+--             touchEnd = system.getTimer()
+
+--             local touchTime = touchEnd - touchStart
+-- print(touchEnd, touchStart)
+--             if(touchTime < globals.touchSlow) then
+--                 print("slow")
+--             elseif(touchTime >= globals.touchSlow and touchTime <= globals.touchFast) then
+--                 print("good")
+--             elseif(touchTime > globals.touchFast) then
+--                 print("fast")
+--             end
+
+--             --transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
             
-       end
-   end
+--        end
+   --end
 end
 
 function seedMissed(seed)

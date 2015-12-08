@@ -1,6 +1,6 @@
 local configuration = {
 level = 1,
-scene = "planting",
+scene = "harvesting",
 parentScene = "onion-patch",
 levelTime = 25,
 startingHealth = 10,
@@ -21,7 +21,7 @@ eagleStreak = 15,
 birdsInLevel = false,
 deerInLevel = false,
 -- gameType options - score, achieveStreaks, finishStreaks ---- planting, harvesting, for special levels
-objective = { gameType = "planting", number = 30, cats = 0, eagles = 0, dogs = 0},
+objective = { gameType = "harvesting", number = 30, cats = 0, eagles = 0, dogs = 0},
 target1 = 10,
 target2 = 30,
 target3 = 50,

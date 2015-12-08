@@ -1,5 +1,8 @@
 local configuration = {
 -- Set up some defaults...
+--touchSlow, touchFast are for harvesting level touch events
+touchSlow = 200,
+touchFast = 100,
 isApple = false,
 isAndroid = false,
 isGoogle = false,
