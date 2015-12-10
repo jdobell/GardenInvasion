@@ -29,10 +29,43 @@ local streak = 0
 local levelConfig
 local numberHolesCompleted = 0
 local holes = {}
-local veggies = {}
 local touchStart
 local touchEnd
 
+
+----------------------------Vegetable sprite setup --------------------------------
+
+local numberVeggies = 24
+local veggies = {}
+
+local veggieSheetOptions =
+{
+    width = 20,
+    height = 20,
+    numFrames = 2
+}
+
+local sequences_veggies = {
+    -- consecutive frames sequence
+    {
+        name = "revive",
+        start = 1,
+        count = 1,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    },
+    {
+        name = "wilt",
+        start = 2,
+        count = 1,
+        time = 100,
+        loopCount = 1,
+        loopDirection = "forward"
+    }
+}
+
+----------------------------veggie sprite setup end----------------------------
 
 ---------------------------------------------------------------------------------
 
@@ -51,19 +84,23 @@ function scene:create( event )
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
+    -- this has to go here because the level config variable has to be set in scene:create
+    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
+
 
     local yHole = 150
     local xHole = 40
 
     for i=1, levelConfig.numberHoles do
     
-        local veggie = display.newImageRect( sceneGroup, levelConfig.veggie, 30, 14 )
+        local veggie = display.newSprite(sceneGroup, sheet_veggie, sequences_veggies)
         local hole = display.newImageRect( sceneGroup, "hole-bottom.png", 40, 20 )
+
         hole.x = xHole 
         hole.y = yHole
 
-        veggie.x = xHole + 3
-        veggie.y = yHole - 10
+        veggie.x = xHole + 10
+        veggie.y = yHole - 7
 
         xHole = xHole + 100
 
@@ -74,6 +111,7 @@ function scene:create( event )
 
         veggie.completed = false
         veggie.holeNumber = i
+        veggie.slow = 0
         hole.holeNumber = i
 
         holes[i] = hole
@@ -143,6 +181,18 @@ function scene:create( event )
     -- 
     -- INSERT code here to initialize the scene
     -- e.g. add display objects to 'sceneGroup', add touch listeners, etc
+end
+
+local function easeSin(f,a)
+  return function(t, tMax, start, delta)
+    return start + delta + a*math.sin( (t/tMax) *f * math.pi*2)
+  end
+end
+
+local function oscillate(f, a, axis, howlong)
+  return function(thing)
+    transition.to( thing, {time=howlong, delta=true, [axis]=0, transition=easeSin(f,a)} )
+  end
 end
 
 function levelCountdown()
@@ -231,13 +281,22 @@ function veggieClicked(event)
 
                 if(touchTime < globals.touchFast) then
                     print("fast")
+                    veggie.completed = true
                 elseif(touchTime >= globals.touchFast and touchTime <= globals.touchSlow) then
                     print("good")
+                    veggie.completed = true
                 elseif(touchTime > globals.touchSlow) then
                     print("slow")
+
+                    if(veggie.slow == 3) then
+
+                    else
+                        oscillate( 10, 2, 'x', 300 ) (veggie)
+                        transition.to(veggie, {time=300, y=veggie.y - 3})
+                        veggie.slow = veggie.slow + 1
+                    end
                 end
 
-                veggie.completed = true
                 display.getCurrentStage():setFocus( nil )
                 veggie.isFocus = false
             end
@@ -251,92 +310,9 @@ function veggieClicked(event)
     end
 
     return true
-
---     if event.phase == "moved" then -- Check if you moved your finger while touching
---         local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
---         if(dy == 1) then
---             touchStart = system.getTimer()
---         end
---         if (dy > 10) then
---             touchEnd = system.getTimer()
-
---             local touchTime = touchEnd - touchStart
--- print(touchEnd, touchStart)
---             if(touchTime < globals.touchSlow) then
---                 print("slow")
---             elseif(touchTime >= globals.touchSlow and touchTime <= globals.touchFast) then
---                 print("good")
---             elseif(touchTime > globals.touchFast) then
---                 print("fast")
---             end
-
---             --transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
-            
---        end
-   --end
 end
 
-function seedMissed(seed)
-    timer.performWithDelay( 100, function()
-        if not seed.collided then
-            destroySelf(seed)
-            holes[currentHole]:setFrame(3)
-            resetStreak()
-            nextHole()
-        end
-    end)
-end
-
-function nextHole()
-    if(numberHolesCompleted < levelConfig.numberHoles) then
-        timer.performWithDelay(10, function() pickHole() end)
-    end
-end
-
-function seedCollision(self, event)
-
-    if(self.seed == levelConfig.targetSeed and event.other.holeNumber == currentHole) then
-        --success, right seed collided
-        holes[currentHole]:setFrame(2)
-        increaseStreak()
-        increaseScore()
-    else
-        --failure -- wrong seed
-        holes[currentHole]:setFrame(3)
-        resetStreak()
-    end
-
-    self.collided = true
-
-    nextHole()
-
-    timer.performWithDelay( 10, function() destroySelf(self) end )
-
-    return true
-end
-
-function pickHole()
-
-    if(currentHole ~= nil) then
-        physics.removeBody( holes[currentHole])
-    end
-
-    local holePicked = false
-
-    while holePicked == false do
-
-        local holeNumber = math.random( 1, levelConfig.numberHoles )
-
-        if(holes[holeNumber].completed == false) then
-            holes[holeNumber].completed = true
-            currentHole = holeNumber
-            holePicked = true
-            numberHolesCompleted = numberHolesCompleted + 1
-            glow.x, glow.y = holes[holeNumber].x, holes[holeNumber].y
-            physics.addBody(holes[holeNumber], {density = 100, shape={0,-3, 5,-2, 7,0, 5,2, 0,3, -5,2, -7,0, -5,-2}})
-        end
-
-    end
+function veggieSuccess(veggie)
 
 end
 
