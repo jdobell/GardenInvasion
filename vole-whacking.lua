@@ -263,7 +263,7 @@ local veggieSheetOptions =
 {
     width = 20,
     height = 20,
-    numFrames = 2
+    numFrames = 3
 }
 
 local sequences_veggies = {
@@ -363,7 +363,7 @@ function scene:create( event )
     local rightSide = display.contentWidth - display.screenOriginX - 7
 
     -- this has to go here because the level config variable has to be set in scene:create
-    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
+    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie..".png", veggieSheetOptions )
 
     local background = display.newImage("background.png", -30, -45 ) 
     globalSceneGroup:insert(background)

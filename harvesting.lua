@@ -29,8 +29,13 @@ local streak = 0
 local levelConfig
 local numberHolesCompleted = 0
 local holes = {}
+local basket
 local touchStart
 local touchEnd
+local veggiePlacementX = 0
+local veggiePlacementY = 0
+local veggieCompostPlacementX = 0
+local veggieCompostPlacementY = 0
 
 
 ----------------------------Vegetable sprite setup --------------------------------
@@ -42,13 +47,13 @@ local veggieSheetOptions =
 {
     width = 20,
     height = 20,
-    numFrames = 2
+    numFrames = 3
 }
 
 local sequences_veggies = {
     -- consecutive frames sequence
     {
-        name = "revive",
+        name = "normal",
         start = 1,
         count = 1,
         time = 100,
@@ -56,8 +61,8 @@ local sequences_veggies = {
         loopDirection = "forward"
     },
     {
-        name = "wilt",
-        start = 2,
+        name = "topless",
+        start = 3,
         count = 1,
         time = 100,
         loopCount = 1,
@@ -84,8 +89,14 @@ function scene:create( event )
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
+    basket = display.newImageRect(globalSceneGroup, "harvest-basket.png", 60, 35)
+    basket.x, basket.y = 230, 70
+
+    compost = display.newImageRect(globalSceneGroup, "harvest-compost.png", 50, 50)
+    compost.x, compost.y = 30, 55
+
     -- this has to go here because the level config variable has to be set in scene:create
-    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie, veggieSheetOptions )
+    local sheet_veggie = graphics.newImageSheet( levelConfig.veggie..".png", veggieSheetOptions )
 
 
     local yHole = 150
@@ -118,8 +129,8 @@ function scene:create( event )
         veggies[i] = veggie
 
         veggie:addEventListener("touch", veggieClicked)
-        hole:addEventListener("touch", cancelTouch)
-        hole:addEventListener("tap", cancelTouch)
+        --hole:addEventListener("touch", cancelTouch)
+        --hole:addEventListener("tap", cancelTouch)
     end
 
     startingCountdown = display.newText("", display.contentWidth / 2, display.contentHeight / 3, native.systemFont, 36)
@@ -282,14 +293,17 @@ function veggieClicked(event)
                 if(touchTime < globals.touchFast) then
                     print("fast")
                     veggie.completed = true
+                    veggieSlide(veggie, false)
                 elseif(touchTime >= globals.touchFast and touchTime <= globals.touchSlow) then
                     print("good")
                     veggie.completed = true
+                    veggieSlide(veggie, true)
                 elseif(touchTime > globals.touchSlow) then
                     print("slow")
 
                     if(veggie.slow == 3) then
-
+                        veggieSlide(veggie, true)
+                        veggie.completed = true
                     else
                         oscillate( 10, 2, 'x', 300 ) (veggie)
                         transition.to(veggie, {time=300, y=veggie.y - 3})
@@ -312,8 +326,49 @@ function veggieClicked(event)
     return true
 end
 
-function veggieSuccess(veggie)
+function veggieSlide(veggie, success)
 
+    if(success) then
+        transition.to(veggie, {y=50, x=display.contentWidth / 2, time = 800, onComplete=veggieToBasket})
+        veggie.anchorX = 0.5
+    else
+        veggie:setSequence("topless")
+        local veggieTop = display.newImageRect(sceneGroup, levelConfig.veggie.."-top.png", 20,8)
+        veggieTop.anchorX, veggieTop.anchorY = 0, 1
+        veggieTop.x, veggieTop.y = veggie.x, veggie.contentBounds.yMin
+        transition.to(veggieTop, {y=50, x=display.contentWidth / 2, time = 800, onComplete=veggieToCompost})
+    end
+
+end
+
+function veggieToBasket(veggie)
+    local x = 242 + veggiePlacementX
+    local y = 70 + veggiePlacementY
+
+    transition.to(veggie, {y=y, x=x, time = 800, width=10, height=10, delay=400})
+    veggie:toFront()
+
+    veggiePlacementX = veggiePlacementX + 5
+
+    if(veggiePlacementX >= 35) then
+        veggiePlacementX = 1
+        veggiePlacementY = veggiePlacementY + 5
+    end
+end
+
+function veggieToCompost(veggie)
+    local x = 40 + veggieCompostPlacementX
+    local y = 90 + veggieCompostPlacementY
+
+    transition.to(veggie, {y=y, x=x, time = 800, width=10, height=10, delay=400})
+    veggie:toFront()
+
+    veggieCompostPlacementX = veggieCompostPlacementX + 5
+
+    if(veggieCompostPlacementX >= 25) then
+        veggieCompostPlacementX = 0
+        veggieCompostPlacementY = veggieCompostPlacementY + 5
+    end
 end
 
 function scene:show( event )
