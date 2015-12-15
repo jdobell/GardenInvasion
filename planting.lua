@@ -235,7 +235,7 @@ function endGame()
         transition.fadeIn(bonusAmountLabel, {time=2000})
         timer.performWithDelay(1000, countBonus)
     else
-        gameOver()
+        gameOver(true)
     end
 end
 
@@ -270,7 +270,7 @@ function countBonus()
     file.saveLevelData(levelData)
     scoreAmountLabel.text = score
 
-    gameOver(true)
+    gameOver()
 end
 
 function destroySelf(obj)

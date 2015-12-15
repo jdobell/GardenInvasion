@@ -27,6 +27,8 @@ local score = 0
 local scorePerClick = 10
 local streak = 0
 local levelConfig
+local gameEnded = false
+local gameOverCompleted = false
 local numberHolesCompleted = 0
 local holes = {}
 local basket
@@ -36,7 +38,7 @@ local veggiePlacementX = 0
 local veggiePlacementY = 0
 local veggieCompostPlacementX = 0
 local veggieCompostPlacementY = 0
-
+local bonusPerSecond = 10
 
 ----------------------------Vegetable sprite setup --------------------------------
 
@@ -212,23 +214,28 @@ function levelCountdown()
 
     if(time == 0) then
         gameEnded = true
-        cancelTimers()
+        endGame()
+    end
+end
 
-        local levelCompleted = false
-        if(levelConfig.objective.gameType == "harvesting") then
-            if(score >= levelConfig.objective.number) then
-                levelCompleted = true
-            end
-        end
+function endGame()
+    
+    cancelTimers()
 
-        if(levelCompleted == true) then
-            transition.fadeIn(levelComplete, {time = 2000})
-            transition.fadeIn(bonusLabel, {time = 2000})
-            transition.fadeIn(bonusAmountLabel, {time=2000})
-            timer.performWithDelay(1000, countBonus)
-        else
-            gameOver()
+    local levelCompleted = false
+    if(levelConfig.objective.gameType == "harvesting") then
+        if(score >= levelConfig.objective.number) then
+            levelCompleted = true
         end
+    end
+
+    if(levelCompleted == true) then
+        transition.fadeIn(levelComplete, {time = 2000})
+        transition.fadeIn(bonusLabel, {time = 2000})
+        transition.fadeIn(bonusAmountLabel, {time=2000})
+        timer.performWithDelay(1000, countBonus)
+    else
+        gameOver(true)
     end
 end
 
@@ -238,15 +245,32 @@ function cancelTimers()
     end
 end
 
-function gameOver()
+function gameOver(lost)
     --game over
     if(gameOverCompleted == false) then
         gameOverCompleted = true
         gameEnded = true
         cancelTimers()
-        transition.fadeIn(gameOverLabel, {time = 2000})
+        if(lost)then
+            transition.fadeIn(gameOverLabel, {time = 2000})
+        end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
+end
+
+function countBonus()
+
+    local bonus = time * bonusPerSecond
+
+    score = score + bonus
+    bonusAmountLabel.text = bonus
+    local levelData = {}
+    levelData.level = levelConfig.level
+    levelData.score = score
+    file.saveLevelData(levelData)
+    scoreAmountLabel.text = score
+
+    gameOver()
 end
 
 function destroySelf(obj)
