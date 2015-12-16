@@ -22,6 +22,19 @@ function file.loadLevelData(level)
     return levelData
 end
 
+function file.loadGlobalData()
+
+    local levelData = box:get("globaldata")
+
+    return levelData
+end
+
+function file.saveGlobalData(t)
+
+    box:set("globaldata", t)
+    box:save()
+end
+
 function file.saveLevelData(t)
     
     local levelData = box:get("level"..t.level)

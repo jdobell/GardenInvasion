@@ -525,6 +525,14 @@ function gameOver(lost)
         cancelTimers()
         if(lost) then
             transition.fadeIn(gameOverLabel, {time = 2000})
+        else
+            local globalData = require("mod_file-management")
+            globalData:setBox(globals.globalDataFile)
+            local data = globalData.loadGlobalData()
+            if(data.maxLevel == nil or levelConfig.level > maxLevel) then
+                globalData:set("maxLevel", levelConfig.level)
+                globalData:save()
+            end
         end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
@@ -1125,9 +1133,11 @@ function randomDeer()
 end
 
 function birdDive(bird)
-    bird:setSequence("dive")
-    bird:play()
-    transition.to(bird, {time=1000, x = 280, y=300, onComplete=birdMissed})
+    if(time > 0) then
+        bird:setSequence("dive")
+        bird:play()
+        transition.to(bird, {time=1000, x = 280, y=300, onComplete=birdMissed})
+    end
 end
 
 function birdMissed(bird)

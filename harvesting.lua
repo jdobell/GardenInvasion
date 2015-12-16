@@ -278,6 +278,7 @@ function destroySelf(obj)
 end
 
 function increaseScore()
+    increaseStreak()
     score = score + (scorePerClick * streak)
     scoreAmountLabel.text = tonumber(score)
 end
@@ -326,8 +327,8 @@ function veggieClicked(event)
                     print("slow")
 
                     if(veggie.slow == 3) then
-                        veggieSlide(veggie, true)
                         veggie.completed = true
+                        veggieSlide(veggie, true)
                     else
                         oscillate( 10, 2, 'x', 300 ) (veggie)
                         transition.to(veggie, {time=300, y=veggie.y - 3})
@@ -366,6 +367,9 @@ function veggieSlide(veggie, success)
 end
 
 function veggieToBasket(veggie)
+
+    increaseScore()
+
     local x = 242 + veggiePlacementX
     local y = 70 + veggiePlacementY
 
@@ -378,9 +382,18 @@ function veggieToBasket(veggie)
         veggiePlacementX = 1
         veggiePlacementY = veggiePlacementY + 5
     end
+
+    numberHolesCompleted = numberHolesCompleted + 1
+
+    if(numberHolesCompleted >= levelConfig.numberHoles) then
+        endGame()
+    end
 end
 
 function veggieToCompost(veggie)
+
+    resetStreak()
+
     local x = 40 + veggieCompostPlacementX
     local y = 90 + veggieCompostPlacementY
 
@@ -392,6 +405,12 @@ function veggieToCompost(veggie)
     if(veggieCompostPlacementX >= 25) then
         veggieCompostPlacementX = 0
         veggieCompostPlacementY = veggieCompostPlacementY + 5
+    end
+
+    numberHolesCompleted = numberHolesCompleted + 1
+
+    if(numberHolesCompleted >= levelConfig.numberHoles) then
+        endGame()
     end
 end
 

@@ -96,6 +96,9 @@ function _M.new(sceneGroup)
     	font = globals.font
 	}
 
+    local globalData = require("mod_file-management")
+    local data = globalData.loadGlobalData()
+
 	for k, v in pairs(patchConfig) do
 		local buttonConfig = patchCommonButton
 		buttonConfig.label = _s(v.name)
@@ -103,6 +106,10 @@ function _M.new(sceneGroup)
 		local button = widget.newButton(buttonConfig)
 		button.anchorX = 0
 		button.y = 40 * v.world
+
+		if(data == nil or data.maxLevel > v.minLevel) then
+			button:setEnabled(false)
+		end
 
 		button.path = v.path
 
@@ -192,6 +199,18 @@ end
 
 function _M:createMarker(x, y, level)
 
+
+	local pastLevel = level - 1
+
+	if(pastLevel > 0) then
+		levelConfig = require("level"..pastLevel)
+		local pastData = file.loadLevelData(pastLevel)
+
+		if(pastData == nil or pastData.score < levelConfig.target1) then
+			return false
+		end
+	end
+
 	local levelMarker = display.newImageRect( commonGroup, "level-marker.png", 50,50)
     levelMarker.x = x + display.screenOriginX
     levelMarker.y = y
@@ -200,7 +219,7 @@ function _M:createMarker(x, y, level)
     levelMarker.level = level
     levelMarker:addEventListener("touch", _M.getLevelSelectModal)
 
-    local data = file.loadLevelData(level)
+local data = file.loadLevelData(level)    
 	if(data ~= nil) then
 		local dataText = display.newText(commonGroup, data.score, x, y, globals.font, 16)
 	end

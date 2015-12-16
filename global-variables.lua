@@ -12,7 +12,8 @@ isIPad = false,
 isTall = false,
 isSimulator = false,
 font = native.systemFont,
-levelDataFile = "garden_invasion_levels"
+levelDataFile = "garden_invasion_levels",
+globalDataFile = "garden_invasion_globals"
 }
 
 local localization = require( "mod_localize" )
