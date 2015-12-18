@@ -1,5 +1,6 @@
 local composer = require( "composer" )
 local common = require("mod_common-patches")
+local patchConfig = require("patch-configuration")
 
 local scene = composer.newScene()
 
@@ -18,7 +19,7 @@ local sceneGroup
 function scene:create( event )
 
     sceneGroup = self.view
-    common.new(sceneGroup)
+    common.new(sceneGroup, patchConfig.world2.world)
 
     local background = display.newImage( sceneGroup, "beet-patch.png", -30, -45 )
 

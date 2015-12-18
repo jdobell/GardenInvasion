@@ -2,6 +2,7 @@ local globals = require("global-variables")
 local composer = require("composer")
 local _s = globals._s
 local _M = {}
+local world
 local levelConfig
 local commonGroup
 local modalGroup
@@ -20,11 +21,13 @@ local file = require("mod_file-management")
 local widget = require("widget")
 local patchConfig = require("patch-configuration")
 
-function _M.new(sceneGroup)
+function _M.new(sceneGroup, worldNumber)
 
 	file:setBox(globals.levelDataFile)
 
 	commonGroup = sceneGroup
+
+	world = worldNumber
 
 ---------------------------------------------------------Navigation code start------------------------------------------------------------
 	navigatePatchButton = widget.newButton
@@ -87,31 +90,42 @@ function _M.new(sceneGroup)
     closeNavigationButton.x, closeNavigationButton.y = navigateModal.contentBounds.xMax -18, navigateModal.contentBounds.yMin - 15
     navigateModalGroup:insert(closeNavigationButton)
 
-    patchCommonButton = {
-    	width = 200,
-    	height = 40,
-    	onEvent = _M.goToPatch,
-    	defaultFile = "navigate-button.png",
-    	labelColor = {default = {0,0,0}, over = {1,1,1}},
-    	font = globals.font
-	}
-
     local globalData = require("mod_file-management")
     local data = globalData.loadGlobalData()
 
 	for k, v in pairs(patchConfig) do
-		local buttonConfig = patchCommonButton
-		buttonConfig.label = _s(v.name)
+
+	    buttonConfig = {
+	    	width = 200,
+	    	height = 40,
+	    	onEvent = _M.goToPatch,
+	    	defaultFile = "navigate-button.png",
+	    	labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    	font = globals.font,
+	    	label = _s(v.name)
+		}
+
+
+		if(data == nil or data.maxLevel > v.minLevel) then
+			if(v.minLevel > globals.minWorldAccessible) then
+				buttonConfig.defaultFile = "navigate-button-disabled.png"
+				buttonConfig.labelColor.over = {0,0,0}
+			end
+		end
 
 		local button = widget.newButton(buttonConfig)
 		button.anchorX = 0
 		button.y = 40 * v.world
+		button.enabled = true
 
 		if(data == nil or data.maxLevel > v.minLevel) then
-			button:setEnabled(false)
+			if(v.minLevel > globals.minWorldAccessible) then
+				button.enabled = false
+			end
 		end
 
 		button.path = v.path
+		button.world = v.world
 
 		navigateScrollView:insert(button)
 	end
@@ -277,8 +291,13 @@ function _M.goToPatch(event)
         	navigateScrollView:takeFocus(event)
        end
     elseif(event.phase == "ended") then
-    	_M.toggleModalVisible(false)
-    	composer.gotoScene( event.target.path)
+    	print(event.target.enabled)
+    	if(event.target.enabled) then
+    		_M.toggleModalVisible(false)
+    		if(event.target.world ~= world) then
+    			composer.gotoScene( event.target.path)
+    		end
+    	end
    end
 end
 

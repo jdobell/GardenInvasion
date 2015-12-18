@@ -13,7 +13,9 @@ isTall = false,
 isSimulator = false,
 font = native.systemFont,
 levelDataFile = "garden_invasion_levels",
-globalDataFile = "garden_invasion_globals"
+globalDataFile = "garden_invasion_globals",
+--for testing purposed only -- change the world that is accessible by increasing number
+minWorldAccessible = 0
 }
 
 local localization = require( "mod_localize" )
