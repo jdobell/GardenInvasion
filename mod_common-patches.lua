@@ -7,6 +7,7 @@ local levelConfig
 local commonGroup
 local modalGroup
 local navigateModalGroup
+local fertilizerModalGroup
 local levelText
 local voleChit
 local birdChit
@@ -14,6 +15,7 @@ local deerChit
 local navigateScrollView
 local navigatePatchButton
 local closeNavigationButton
+local buyFertilizerButton
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
 
@@ -45,6 +47,19 @@ function _M.new(sceneGroup, worldNumber)
 	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
 	commonGroup:insert(navigatePatchButton)
 	navigatePatchButton.anchorX = 1
+
+	buyFertilizerButton = widget.newButton
+	{
+		width = 30,
+		height = 30,
+		defaultFile = "fertilizer-icon.png",
+		overFile = "fertilizer-icon-over.png",
+		onEvent = _M.openBuyFertilizerDialog
+	}
+
+	buyFertilizerButton.x, buyFertilizerButton.y = display.screenOriginX + 5, display.screenOriginY + 5
+	commonGroup:insert(buyFertilizerButton)
+	buyFertilizerButton.anchorX = 0
 
 	modalGroup = display.newGroup()
 	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
@@ -130,7 +145,53 @@ function _M.new(sceneGroup, worldNumber)
 		navigateScrollView:insert(button)
 	end
 
----------------------------------------------------------Navigation code end ---------------------------------------------------------
+
+	-------------Buy fertilizer dialog-----------------------------
+
+	fertilizerModalGroup = display.newGroup()
+	local fertilizerModalBackground = display.newImageRect(fertilizerModalGroup, "transparent-background.png", 380, 570)
+	fertilizerModalBackground.x, fertilizerModalBackground.y = -23, -44
+	fertilizerModalBackground:addEventListener( "touch", _M.modalTouched )
+	fertilizerModalBackground:addEventListener( "tap", _M.modalTouched )
+
+	fertilizerScrollView = widget.newScrollView
+    {
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        width = 250,
+        height = 100,
+        verticalScrollDisabled = true,
+        hideBackground = true,
+    }
+
+    fertilizerScrollView.anchorX, fertilizerScrollView.anchorY = 0.5, 0.5
+
+	local fertilizerModal = display.newImageRect(fertilizerModalGroup, "buy-fertilizer-background.png", 250, 100)
+	fertilizerModal.x, fertilizerModal.y = display.contentCenterX, display.contentCenterY
+	fertilizerModal.anchorX, fertilizerModal.anchorY = 0.5, 0.5
+	fertilizerModalGroup:insert( fertilizerModal )
+
+    fertilizerModalGroup:insert(fertilizerScrollView)
+
+	closeFertilizerButton = widget.newButton
+	{
+	    width = 30,
+	    height = 30,
+	    defaultFile = "close-button.png",
+	    overFile = "close-button-pressed.png",
+	    onEvent = _M.closeModal,
+	    font = globals.font
+	}
+    closeFertilizerButton.x, closeFertilizerButton.y = fertilizerModal.contentBounds.xMax -18, fertilizerModal.contentBounds.yMin - 15
+    fertilizerModalGroup:insert(closeFertilizerButton)
+
+    --local buttonConfig = {}
+
+	--local button = widget.newButton(buttonConfig)
+
+	--fertilizerScrollView:insert(button)
+
+---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
 
 	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
 	levelText:setFillColor( black )
@@ -182,6 +243,7 @@ function _M.new(sceneGroup, worldNumber)
 
 	commonGroup:insert(modalGroup)
 	commonGroup:insert(navigateModalGroup)
+	commonGroup:insert(fertilizerModalGroup)
 	 _M:toggleModalVisible(false)
 
 end
@@ -189,6 +251,7 @@ end
 function _M:toFront()
 	navigatePatchButton:toFront()
 	navigateModalGroup:toFront()
+	buyFertilizerButton:toFront()
 end
 
 function _M:toggleModalVisible(visible, modal)
@@ -208,7 +271,13 @@ function _M:toggleModalVisible(visible, modal)
 		for i=1,navigateModalGroup.numChildren do
 	    	navigateModalGroup[i].alpha = alpha
 		end
-	end 
+	end
+
+	if(modal == "fertilizer" or modal == nil) then
+		for i=1,fertilizerModalGroup.numChildren do
+	    	fertilizerModalGroup[i].alpha = alpha
+		end
+	end
 end
 
 function _M:createMarker(x, y, level)
@@ -299,6 +368,14 @@ function _M.goToPatch(event)
     		end
     	end
    end
+end
+
+function _M.openBuyFertilizerDialog(event)
+
+
+    _M:toggleModalVisible(true, "fertilizer")
+
+    fertilizerModalGroup:toFront()
 end
 
 return _M
