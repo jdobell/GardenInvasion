@@ -16,3 +16,5 @@ Garlic Patch = Garlic Patch
 Parsnip Patch = Parsnip Patch
 Potato Patch = Potato Patch
 Sweet Potato Patch = Sweet Potato Patch
+Buy Fertilizer = Buy Fertilizer
+1 Scoop = 1 Scoop

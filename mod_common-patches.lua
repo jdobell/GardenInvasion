@@ -157,9 +157,9 @@ function _M.new(sceneGroup, worldNumber)
 	fertilizerScrollView = widget.newScrollView
     {
         x = display.contentCenterX,
-        y = display.contentCenterY,
+        y = display.contentCenterY + 15,
         width = 250,
-        height = 100,
+        height = 70,
         verticalScrollDisabled = true,
         hideBackground = true,
     }
@@ -171,6 +171,9 @@ function _M.new(sceneGroup, worldNumber)
 	fertilizerModal.anchorX, fertilizerModal.anchorY = 0.5, 0.5
 	fertilizerModalGroup:insert( fertilizerModal )
 
+	local buyFertilizerText = display.newText(fertilizerModalGroup, _s("Buy Fertilizer"), fertilizerModal.contentBounds.xMin + fertilizerModal.width / 2, fertilizerModal.contentBounds.yMin + 7, globals.font, 16)
+	buyFertilizerText.anchorX = 0.5
+
     fertilizerModalGroup:insert(fertilizerScrollView)
 
 	closeFertilizerButton = widget.newButton
@@ -180,16 +183,27 @@ function _M.new(sceneGroup, worldNumber)
 	    defaultFile = "close-button.png",
 	    overFile = "close-button-pressed.png",
 	    onEvent = _M.closeModal,
-	    font = globals.font
 	}
     closeFertilizerButton.x, closeFertilizerButton.y = fertilizerModal.contentBounds.xMax -18, fertilizerModal.contentBounds.yMin - 15
     fertilizerModalGroup:insert(closeFertilizerButton)
 
-    --local buttonConfig = {}
+    local buttonConfig = {
+    	width = 55,
+	    height = 60,
+	    defaultFile = "fertilizer-scoop.png",
+	    overFile = "fertilizer-scoop-over.png",
+	    onEvent = _M.buyFertilizer,
+	    font = globals.font,
+	    left = 10
+	}
 
-	--local button = widget.newButton(buttonConfig)
+	local scoopButton = widget.newButton(buttonConfig)
+	scoopButton.amount = 1
 
-	--fertilizerScrollView:insert(button)
+	fertilizerScrollView:insert(scoopButton)
+
+	local scoopText = display.newText(fertilizerModalGroup, _s("1 Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
+	scoopText.anchorX, scoopText.anchorY = 0.5, 1
 
 ---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
 
@@ -376,6 +390,15 @@ function _M.openBuyFertilizerDialog(event)
     _M:toggleModalVisible(true, "fertilizer")
 
     fertilizerModalGroup:toFront()
+end
+
+function _M.buyFertilizer(event)
+	if event.phase == "moved" then -- Check if you moved your finger while touching
+        local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
+        if dx > 5 then
+        	fertilizerScrollView:takeFocus(event)
+       end
+    end
 end
 
 return _M
