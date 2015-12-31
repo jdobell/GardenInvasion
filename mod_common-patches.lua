@@ -197,13 +197,17 @@ function _M.new(sceneGroup, worldNumber)
 	    left = 10
 	}
 
+	local fertilizerScoopGroup = display.newGroup()
 	local scoopButton = widget.newButton(buttonConfig)
 	scoopButton.amount = 1
+	fertilizerScoopGroup:insert(scoopButton)
+	commonGroup:insert(fertilizerScoopGroup)
 
-	fertilizerScrollView:insert(scoopButton)
-
-	local scoopText = display.newText(fertilizerModalGroup, _s("1 Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
+	local scoopText = display.newText(fertilizerScoopGroup, _s("1 Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
 	scoopText.anchorX, scoopText.anchorY = 0.5, 1
+
+
+	fertilizerScrollView:insert(fertilizerScoopGroup)
 
 ---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
 
