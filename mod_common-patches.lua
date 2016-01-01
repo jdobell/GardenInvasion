@@ -16,6 +16,7 @@ local navigateScrollView
 local navigatePatchButton
 local closeNavigationButton
 local buyFertilizerButton
+local livesLabel
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
 
@@ -57,7 +58,7 @@ function _M.new(sceneGroup, worldNumber)
 		onEvent = _M.openBuyFertilizerDialog
 	}
 
-	buyFertilizerButton.x, buyFertilizerButton.y = display.screenOriginX + 5, display.screenOriginY + 5
+	buyFertilizerButton.x, buyFertilizerButton.y = display.screenOriginX + 5, display.screenOriginY + 30
 	commonGroup:insert(buyFertilizerButton)
 	buyFertilizerButton.anchorX = 0
 
@@ -106,6 +107,7 @@ function _M.new(sceneGroup, worldNumber)
     navigateModalGroup:insert(closeNavigationButton)
 
     local globalData = require("mod_file-management")
+    globalData:setBox(globals.globalDataFile)
     local data = globalData.loadGlobalData()
 
 	for k, v in pairs(patchConfig) do
@@ -121,7 +123,7 @@ function _M.new(sceneGroup, worldNumber)
 		}
 
 
-		if(data == nil or data.maxLevel > v.minLevel) then
+		if(data == nil or data.maxLevel == nil or data.maxLevel > v.minLevel) then
 			if(v.minLevel > globals.minWorldAccessible) then
 				buttonConfig.defaultFile = "navigate-button-disabled.png"
 				buttonConfig.labelColor.over = {0,0,0}
@@ -133,7 +135,7 @@ function _M.new(sceneGroup, worldNumber)
 		button.y = 40 * v.world
 		button.enabled = true
 
-		if(data == nil or data.maxLevel > v.minLevel) then
+		if(data == nil or data.maxLevel == nil or data.maxLevel > v.minLevel) then
 			if(v.minLevel > globals.minWorldAccessible) then
 				button.enabled = false
 			end
@@ -145,6 +147,16 @@ function _M.new(sceneGroup, worldNumber)
 		navigateScrollView:insert(button)
 	end
 
+	if(data == nil) then
+		data = {}
+	end
+
+	if(data.lives == nil) then
+		data.lives = globals.startingLives
+		globalData.saveGlobalData(data)
+	end
+
+	livesLabel = display.newText( commonGroup, _s("Lives:").." "..data.lives, display.screenOriginX + 5, display.screenOriginY + 5, globals.font, 16)
 
 	-------------Buy fertilizer dialog-----------------------------
 
@@ -194,7 +206,7 @@ function _M.new(sceneGroup, worldNumber)
 	    overFile = "fertilizer-scoop-over.png",
 	    onEvent = _M.buyFertilizer,
 	    font = globals.font,
-	    left = 10
+	    left = 18
 	}
 
 	local fertilizerScoopGroup = display.newGroup()
@@ -206,8 +218,51 @@ function _M.new(sceneGroup, worldNumber)
 	local scoopText = display.newText(fertilizerScoopGroup, _s("1 Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
 	scoopText.anchorX, scoopText.anchorY = 0.5, 1
 
-
 	fertilizerScrollView:insert(fertilizerScoopGroup)
+
+	buttonConfig = {
+    	width = 55,
+	    height = 60,
+	    defaultFile = "fertilizer-bucket.png",
+	    overFile = "fertilizer-bucket-over.png",
+	    onEvent = _M.buyFertilizer,
+	    font = globals.font,
+	    left = scoopButton.contentBounds.xMax - 10
+	}
+
+	local fertilizerBucketGroup = display.newGroup()
+	local bucketButton = widget.newButton(buttonConfig)
+	bucketButton.amount = 5
+	fertilizerBucketGroup:insert(bucketButton)
+	commonGroup:insert(fertilizerBucketGroup)
+
+	local bucketText = display.newText(fertilizerBucketGroup, _s("1 Bucket"), bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMax, globals.font, 13)
+	bucketText.anchorX, bucketText.anchorY = 0.5, 1
+
+
+	fertilizerScrollView:insert(fertilizerBucketGroup)
+
+	buttonConfig = {
+    	width = 55,
+	    height = 60,
+	    defaultFile = "fertilizer-bag.png",
+	    overFile = "fertilizer-bag-over.png",
+	    onEvent = _M.buyFertilizer,
+	    font = globals.font,
+	    left = bucketButton.contentBounds.xMax - 10
+	}
+
+	local fertilizerBagGroup = display.newGroup()
+	local bagButton = widget.newButton(buttonConfig)
+	bagButton.amount = 10
+	fertilizerBagGroup:insert(bagButton)
+	commonGroup:insert(fertilizerBagGroup)
+
+	local bagText = display.newText(fertilizerBagGroup, _s("1 Bag"), bagButton.contentBounds.xMin + bagButton.width / 2, bagButton.contentBounds.yMax, globals.font, 13)
+	bagText.anchorX, bagText.anchorY = 0.5, 1
+
+
+	fertilizerScrollView:insert(fertilizerBagGroup)
 
 ---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
 
@@ -270,6 +325,7 @@ function _M:toFront()
 	navigatePatchButton:toFront()
 	navigateModalGroup:toFront()
 	buyFertilizerButton:toFront()
+	livesLabel:toFront()
 end
 
 function _M:toggleModalVisible(visible, modal)
