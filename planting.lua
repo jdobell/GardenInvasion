@@ -253,6 +253,7 @@ function gameOver(lost)
         cancelTimers()
         if(lost)then
             transition.fadeIn(gameOverLabel, {time = 2000})
+            file.loseLife()
         end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end

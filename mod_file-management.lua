@@ -1,5 +1,6 @@
 local GGData = require( "GGData" ) -- Assumes GGData.lua is in root folder
 local crypto = require( "crypto" )
+local globals = require("global-variables")
 local box
 
 local file = {}
@@ -24,9 +25,9 @@ end
 
 function file.loadGlobalData()
 
-    local levelData = box:get("globaldata")
+    local globalData = box:get("globaldata")
 
-    return levelData
+    return globalData
 end
 
 function file.saveGlobalData(t)
@@ -50,5 +51,22 @@ function file.saveLevelData(t)
             box:save()
         end
     end
+end
+
+function file.loseLife()
+    file:setBox(globals.globalDataFile)
+
+    local data = file.loadGlobalData()
+
+    if(data.lives == nil) then
+        data.lives = 0
+    end
+
+    if(data.lives > 0) then
+        data.lives = data.lives - 1
+    end
+
+    file.saveGlobalData(data)
+
 end
 return file

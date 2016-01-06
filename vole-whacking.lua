@@ -525,6 +525,7 @@ function gameOver(lost)
         cancelTimers()
         if(lost) then
             transition.fadeIn(gameOverLabel, {time = 2000})
+            file.loseLife()
         else
             local globalData = require("mod_file-management")
             globalData:setBox(globals.globalDataFile)

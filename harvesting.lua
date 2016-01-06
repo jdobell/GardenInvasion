@@ -253,6 +253,7 @@ function gameOver(lost)
         cancelTimers()
         if(lost)then
             transition.fadeIn(gameOverLabel, {time = 2000})
+            file.loseLife()
         end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
@@ -441,7 +442,7 @@ function scene:hide( event )
         -- e.g. stop timers, stop animation, unload sounds, etc.)
     elseif phase == "did" then
         -- Called when the scene is now off screen
-        composer.removeScene( "planting", false )
+        composer.removeScene( "harvesting", false )
     end 
 end
 

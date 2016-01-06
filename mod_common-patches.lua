@@ -26,6 +26,8 @@ local patchConfig = require("patch-configuration")
 
 function _M.new(sceneGroup, worldNumber)
 
+	timer.performWithDelay( 60000, _M.checkLives, 0)
+
 	file:setBox(globals.levelDataFile)
 
 	commonGroup = sceneGroup
@@ -152,7 +154,8 @@ function _M.new(sceneGroup, worldNumber)
 	end
 
 	if(data.lives == nil) then
-		data.lives = globals.startingLives
+		data.lives = globals.maxLives
+		data.lastLifeGiven = os.time()
 		globalData.saveGlobalData(data)
 	end
 
@@ -319,6 +322,8 @@ function _M.new(sceneGroup, worldNumber)
 	commonGroup:insert(fertilizerModalGroup)
 	 _M:toggleModalVisible(false)
 
+
+	_M.checkLives()
 end
 
 function _M:toFront()
@@ -356,7 +361,7 @@ end
 
 function _M:createMarker(x, y, level)
 
-
+	file:setBox(globals.levelDataFile)
 	local pastLevel = level - 1
 
 	if(pastLevel > 0) then
@@ -459,6 +464,36 @@ function _M.buyFertilizer(event)
         	fertilizerScrollView:takeFocus(event)
        end
     end
+end
+
+function _M.checkLives()
+
+	file:setBox(globals.globalDataFile)
+	local data = file.loadGlobalData()
+
+	local now = os.time()
+	--round down to the nearest half hour
+	now = now - (now % globals.timeBetweenLives)
+print (os.date("%c",now), os.date("%c",data.lastLifeGiven))
+	local difference = now - data.lastLifeGiven
+print(now, data.lastLifeGiven, difference)
+
+	if(difference > 0) then
+		local livesToGive = math.floor(difference / globals.timeBetweenLives) + 1
+
+		if(livesToGive > 0) then
+			data.lives = data.lives + livesToGive
+			data.lastLifeGiven = now
+
+			if(data.lives > globals.maxLives) then
+				data.lives = globals.maxLives
+			end
+
+			livesLabel.text = _s("Lives:").." "..data.lives
+
+			file.saveGlobalData(data)
+		end
+	end
 end
 
 return _M
