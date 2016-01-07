@@ -530,9 +530,9 @@ function gameOver(lost)
             local globalData = require("mod_file-management")
             globalData:setBox(globals.globalDataFile)
             local data = globalData.loadGlobalData()
-            if(data.maxLevel == nil or levelConfig.level > maxLevel) then
-                globalData:set("maxLevel", levelConfig.level)
-                globalData:save()
+            if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
+                data.maxLevel = levelConfig.level
+                globalData:saveGlobalData(data)
             end
         end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
@@ -621,7 +621,7 @@ function levelCountdown()
             wiltedIndex = math.ceil(wiltedIndex)
             timer.performWithDelay(1000, countBonus)
         else
-            gameOver(false)
+            gameOver(true)
         end
     end
 end
@@ -708,7 +708,7 @@ function countBonus()
         file.saveLevelData(levelData)
         scoreAmountLabel.text = score
 
-        gameOver(true)
+        gameOver(false)
     end
 
 end
@@ -740,26 +740,33 @@ function wiltVeggies()
     end
 end
 
-function gasHit(creature, animal)
-    local gas = display.newImageRect('gas.png', 20, 20)
-    if(animal == "deer") then
-        gas.x = creature.x + 50
-    elseif(animal == "bird") then
-        if(creature.sequence == "normalFlying") then
-            gas.x = creature.x + 20
-        elseif(creature.sequence == "dive") then
-            gas.x = creature.x + 10
-        end
-    else
+function animalHit(creature, animal)
+    if(animal == "vole") then
+        local gas = display.newImageRect('gas.png', 20, 20)
         gas.x = creature.x
+        gas.y = creature.y
+        gas.alpha = 0
+        sceneGroup:insert(gas)
+        transition.fadeIn(gas, {time=50, onComplete= function(gas) timer.performWithDelay(transition.fadeOut(gas, {time=500}), {time=500})end})
+    else
+        local rock = display.newImageRect('rock.png', 10, 10)
+        rock.x, rock.y = creature.x, display.actualContentHeight
+        sceneGroup:insert(rock)
+        local rockSpeed
+        local animalSpeed
+
+        if(animal == "deer") then
+            rockSpeed = 300
+            animalSpeed = ((display.contentWidth + 80) -creature.x) / globals.animalHitSpeed
+        elseif(animal == "bird") then
+            rockSpeed = 500
+            --100 being where the bird flys to on the x axis after being hit
+            animalSpeed = 100 / globals.animalHitSpeed
+        end
+
+        local distance = animalSpeed * rockSpeed
+        transition.to(rock, {time=rockSpeed, x=creature.x + distance, y=creature.y, onComplete=destroySelf})
     end
-
-    gas.y = creature.y
-
-    gas.alpha = 0
-    sceneGroup:insert(gas)
-
-    transition.fadeIn(gas, {time=50, onComplete= function(gas) timer.performWithDelay(transition.fadeOut(gas, {time=500}), {time=500})end})
 end
 
 
@@ -769,7 +776,7 @@ function voleTouchedListener( event )
 
         if(vole.isClickable) then
             vole.hit = true
-            gasHit(vole)
+            animalHit(vole, "vole")
             increaseStreak()
             increaseScore()
             if (vole.transition == "up") then
@@ -786,13 +793,14 @@ end
 
 function birdTouchedListener( event )
     if (event.phase == "began" and time > 0) then
-        if(event.target.isClickable) then
-            gasHit(event.target, "bird")
+        local bird = event.target
+        if(bird.isClickable) then
+            animalHit(bird, "bird")
             increaseStreak()
             increaseScore()
-            event.target.isClickable = false
-            transition.cancel(event.target)
-            transition.to(event.target, {time=800, x=event.target.x + 100, y=-100, onComplete=destroySelf})
+            bird.isClickable = false
+            transition.cancel(bird)
+            transition.to(bird, {time=globals.animalHitSpeed, x=bird.x + 100, y=display.screenOriginY - 20, onComplete=destroySelf})
         end
     end
 end
@@ -801,14 +809,14 @@ function deerTouchedListener( event )
     if (event.phase == "began" and time > 0) then
         local deer = event.target
         if(deer.isClickable) then
-            gasHit(deer, "deer")
+            animalHit(deer, "deer")
             increaseStreak()
             increaseScore()
             deer.isClickable = false
             deer:setSequence("hit")
             deer:play()
             transition.cancel(deer)
-            transition.to(deer, {time=800, x= 400, onComplete=destroySelf})
+            transition.to(deer, {time=globals.animalHitSpeed, x= display.contentWidth + 40, onComplete=destroySelf})
         end
     end
 end
@@ -1120,14 +1128,14 @@ function randomDeer()
     
     deer.deerNumber = deerNumber
     deer.isClickable = true
-    deer.x = -40
+    deer.x = display.screenOriginX - 40
     deer.y = math.random(190, 220)
 
     deer:addEventListener("touch", deerTouchedListener)
     deerNumber = deerNumber + 1
 
     globalSceneGroup:insert(deer)
-    transition.to(deer, {time = levelConfig.deerSpeed, x = 275, onComplete=deerMissed})
+    transition.to(deer, {time = levelConfig.deerSpeed, x = display.contentWidth + 40, onComplete=deerMissed})
     deer:play()
 
     table.insert(timers, timer.performWithDelay(randomDeerDelay(), randomDeer))

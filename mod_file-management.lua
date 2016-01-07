@@ -79,11 +79,11 @@ function file.checkLives()
     local data = file.loadGlobalData()
 
     local now = os.time()
-    --round down to the nearest half hour
+    --round both now and last saved life down to the nearest half hour to calculate how many ***half hours*** have passed
     now = now - (now % globals.timeBetweenLives)
     local lastLife = data.lastLifeGiven
     lastLife = lastLife - (lastLife % globals.timeBetweenLives)
-print (os.date("%c",now), os.date("%c",data.lastLifeGiven))
+
     local difference = now - lastLife
 
     if(difference > 0) then

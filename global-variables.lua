@@ -17,7 +17,8 @@ globalDataFile = "garden_invasion_globals",
 --for testing purposed only -- change the world that is accessible by increasing number
 minWorldAccessible = 0,
 maxLives = 3,
-timeBetweenLives = 60 -- in seconds
+timeBetweenLives = 60, -- in seconds
+animalHitSpeed = 800
 }
 
 local localization = require( "mod_localize" )
