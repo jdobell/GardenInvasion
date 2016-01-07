@@ -54,6 +54,9 @@ function file.saveLevelData(t)
 end
 
 function file.loseLife()
+
+    file.checkLives()
+
     file:setBox(globals.globalDataFile)
 
     local data = file.loadGlobalData()
@@ -64,9 +67,40 @@ function file.loseLife()
 
     if(data.lives > 0) then
         data.lives = data.lives - 1
+        data.lastLifeGiven = os.time()
     end
 
     file.saveGlobalData(data)
 
+end
+
+function file.checkLives()
+    file:setBox(globals.globalDataFile)
+    local data = file.loadGlobalData()
+
+    local now = os.time()
+    --round down to the nearest half hour
+    now = now - (now % globals.timeBetweenLives)
+    local lastLife = data.lastLifeGiven
+    lastLife = lastLife - (lastLife % globals.timeBetweenLives)
+print (os.date("%c",now), os.date("%c",data.lastLifeGiven))
+    local difference = now - lastLife
+
+    if(difference > 0) then
+        local livesToGive = math.floor(difference / globals.timeBetweenLives)
+
+        if(livesToGive > 0) then
+            data.lives = data.lives + livesToGive
+            data.lastLifeGiven = now
+
+            if(data.lives > globals.maxLives) then
+                data.lives = globals.maxLives
+            end
+
+            file.saveGlobalData(data)
+        end
+    end
+
+    return data.lives
 end
 return file

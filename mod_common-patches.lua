@@ -19,6 +19,7 @@ local buyFertilizerButton
 local livesLabel
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
+local timers = {}
 
 local file = require("mod_file-management")
 local widget = require("widget")
@@ -26,7 +27,7 @@ local patchConfig = require("patch-configuration")
 
 function _M.new(sceneGroup, worldNumber)
 
-	timer.performWithDelay( 60000, _M.checkLives, 0)
+	table.insert(timers, timer.performWithDelay( 60000, _M.checkLives, 0))
 
 	file:setBox(globals.levelDataFile)
 
@@ -410,6 +411,7 @@ end
 function _M.goToLevel(event)
 	if(event.phase == "ended") then
 		_M:toggleModalVisible(false)
+		_M:cancelTimers()
     	composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
     end
 end
@@ -443,6 +445,7 @@ function _M.goToPatch(event)
     	if(event.target.enabled) then
     		_M.toggleModalVisible(false)
     		if(event.target.world ~= world) then
+    			_M:cancelTimers()
     			composer.gotoScene( event.target.path)
     		end
     	end
@@ -468,31 +471,14 @@ end
 
 function _M.checkLives()
 
-	file:setBox(globals.globalDataFile)
-	local data = file.loadGlobalData()
+	local numLives = file.checkLives()
 
-	local now = os.time()
-	--round down to the nearest half hour
-	now = now - (now % globals.timeBetweenLives)
-print (os.date("%c",now), os.date("%c",data.lastLifeGiven))
-	local difference = now - data.lastLifeGiven
-print(now, data.lastLifeGiven, difference)
+	livesLabel.text = _s("Lives:").." "..numLives
+end
 
-	if(difference > 0) then
-		local livesToGive = math.floor(difference / globals.timeBetweenLives) + 1
-
-		if(livesToGive > 0) then
-			data.lives = data.lives + livesToGive
-			data.lastLifeGiven = now
-
-			if(data.lives > globals.maxLives) then
-				data.lives = globals.maxLives
-			end
-
-			livesLabel.text = _s("Lives:").." "..data.lives
-
-			file.saveGlobalData(data)
-		end
+function _M:cancelTimers()
+	for k,v in pairs(timers) do
+		timer.cancel(v)
 	end
 end
 

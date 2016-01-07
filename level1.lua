@@ -22,6 +22,7 @@ birdsInLevel = false,
 deerInLevel = false,
 -- gameType options - score, achieveStreaks, finishStreaks ---- planting, harvesting, for special levels
 objective = { gameType = "harvesting", number = 30, cats = 0, eagles = 0, dogs = 0},
+--target 1 should match number
 target1 = 10,
 target2 = 30,
 target3 = 50,
