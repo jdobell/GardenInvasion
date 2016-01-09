@@ -16,6 +16,7 @@ local navigateScrollView
 local navigatePatchButton
 local closeNavigationButton
 local buyFertilizerButton
+local buyIAPButton
 local livesLabel
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
@@ -51,19 +52,6 @@ function _M.new(sceneGroup, worldNumber)
 	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
 	commonGroup:insert(navigatePatchButton)
 	navigatePatchButton.anchorX = 1
-
-	buyFertilizerButton = widget.newButton
-	{
-		width = 30,
-		height = 30,
-		defaultFile = "fertilizer-icon.png",
-		overFile = "fertilizer-icon-over.png",
-		onEvent = _M.openBuyFertilizerDialog
-	}
-
-	buyFertilizerButton.x, buyFertilizerButton.y = display.screenOriginX + 5, display.screenOriginY + 30
-	commonGroup:insert(buyFertilizerButton)
-	buyFertilizerButton.anchorX = 0
 
 	modalGroup = display.newGroup()
 	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
@@ -162,7 +150,84 @@ function _M.new(sceneGroup, worldNumber)
 
 	livesLabel = display.newText( commonGroup, _s("Lives:").." "..data.lives, display.screenOriginX + 5, display.screenOriginY + 5, globals.font, 16)
 
-	-------------Buy fertilizer dialog-----------------------------
+	-------------Buy fertilizer dialog is also In App Purchase Dialog-----------------------------
+	_M:createBuyFertilizerDialog()
+	_M:createBuyInAppPurchaseDialog()
+	
+
+---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
+
+	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
+	levelText:setFillColor( black )
+
+	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, 70, globals.font, 16)
+	pestText.anchorX = 0.5
+	pestText:setFillColor( black )
+
+	voleChit = display.newImageRect(modalGroup, "vole-chit.png", 40, 40)
+	voleChit.x, voleChit.y = 70, 100
+
+	birdChit = display.newImageRect(modalGroup, "bird-chit.png", 40, 40)
+	birdChit.x, birdChit.y = 140, 100
+	birdChit.alpha = 0
+
+	deerChit = display.newImageRect(modalGroup, "deer-chit.png", 40, 40)
+	deerChit.x, deerChit.y = 210, 100
+	birdChit.alpha = 0
+
+	local playButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.goToLevel,
+	    label = _s("Play"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
+	}
+
+	playButton.x, playButton.y = 220, 420
+	modalGroup:insert(playButton)
+
+	local goBackButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.closeModal,
+	    label = _s("Go Back"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
+	}
+
+	goBackButton.x, goBackButton.y = 140, 420
+	modalGroup:insert(goBackButton)
+
+	commonGroup:insert(modalGroup)
+	commonGroup:insert(navigateModalGroup)
+	commonGroup:insert(fertilizerModalGroup)
+	 _M:toggleModalVisible(false)
+
+
+	_M.checkLives()
+end
+
+function _M:createBuyFertilizerDialog()
+
+	buyFertilizerButton = widget.newButton
+	{
+		width = 30,
+		height = 30,
+		defaultFile = "fertilizer-icon.png",
+		overFile = "fertilizer-icon-over.png",
+		onEvent = _M.openBuyFertilizerDialog
+	}
+
+	buyFertilizerButton.x, buyFertilizerButton.y = display.screenOriginX + 5, display.screenOriginY + 30
+	commonGroup:insert(buyFertilizerButton)
+	buyFertilizerButton.anchorX = 0
 
 	fertilizerModalGroup = display.newGroup()
 	local fertilizerModalBackground = display.newImageRect(fertilizerModalGroup, "transparent-background.png", 380, 570)
@@ -267,70 +332,80 @@ function _M.new(sceneGroup, worldNumber)
 
 
 	fertilizerScrollView:insert(fertilizerBagGroup)
+end
 
----------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
+function _M:createBuyInAppPurchaseDialog()
 
-	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
-	levelText:setFillColor( black )
-
-	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, 70, globals.font, 16)
-	pestText.anchorX = 0.5
-	pestText:setFillColor( black )
-
-	voleChit = display.newImageRect(modalGroup, "vole-chit.png", 40, 40)
-	voleChit.x, voleChit.y = 70, 100
-
-	birdChit = display.newImageRect(modalGroup, "bird-chit.png", 40, 40)
-	birdChit.x, birdChit.y = 140, 100
-	birdChit.alpha = 0
-
-	deerChit = display.newImageRect(modalGroup, "deer-chit.png", 40, 40)
-	deerChit.x, deerChit.y = 210, 100
-	birdChit.alpha = 0
-
-	local playButton = widget.newButton
+	buyIAPButton = widget.newButton
 	{
-	    width = 70,
-	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
-	    onEvent = _M.goToLevel,
-	    label = _s("Play"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
+		width = 30,
+		height = 30,
+		defaultFile = "IAP-icon.png",
+		overFile = "IAP-icon-over.png",
+		onEvent = _M.openBuyIAPDialog
 	}
 
-	playButton.x, playButton.y = 220, 420
-	modalGroup:insert(playButton)
+	buyIAPButton.x, buyIAPButton.y = display.screenOriginX + 5, display.screenOriginY + 70
+	commonGroup:insert(buyIAPButton)
+	buyIAPButton.anchorX = 0
 
-	local goBackButton = widget.newButton
+	IAPModalGroup = display.newGroup()
+	local IAPModalBackground = display.newImageRect(IAPModalGroup, "transparent-background.png", 380, 570)
+	IAPModalBackground.x, IAPModalBackground.y = -23, -44
+	IAPModalBackground:addEventListener( "touch", _M.modalTouched )
+	IAPModalBackground:addEventListener( "tap", _M.modalTouched )
+
+	IAPScrollView = widget.newScrollView
+    {
+        x = display.contentCenterX,
+        y = display.contentCenterY + 15,
+        width = 250,
+        height = 70,
+        verticalScrollDisabled = true,
+        hideBackground = true,
+    }
+
+    IAPScrollView.anchorX, IAPScrollView.anchorY = 0.5, 0.5
+
+	local IAPModal = display.newImageRect(IAPModalGroup, "buy-fertilizer-background.png", 250, 100)
+	IAPModal.x, IAPModal.y = display.contentCenterX, display.contentCenterY
+	IAPModal.anchorX, IAPModal.anchorY = 0.5, 0.5
+	IAPModalGroup:insert( IAPModal )
+
+	local buyIAPText = display.newText(IAPModalGroup, _s("Farmer's Market"), IAPModal.contentBounds.xMin + IAPModal.width / 2, IAPModal.contentBounds.yMin + 7, globals.font, 16)
+	buyIAPText.anchorX = 0.5
+
+    IAPModalGroup:insert(IAPScrollView)
+
+	closeIAPButton = widget.newButton
 	{
-	    width = 70,
+	    width = 30,
 	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
+	    defaultFile = "close-button.png",
+	    overFile = "close-button-pressed.png",
 	    onEvent = _M.closeModal,
-	    label = _s("Go Back"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
+	}
+    closeIAPButton.x, closeIAPButton.y = IAPModal.contentBounds.xMax -18, IAPModal.contentBounds.yMin - 15
+    IAPModalGroup:insert(closeIAPButton)
+
+    local buttonConfig = {
+    	width = 55,
+	    height = 60,
+	    defaultFile = "IAP-icon.png",
+	    overFile = "IAP-icon-over.png",
+	    onEvent = _M.buyIAP,
+	    font = globals.font,
+	    left = 18
 	}
 
-	goBackButton.x, goBackButton.y = 140, 420
-	modalGroup:insert(goBackButton)
-
-	commonGroup:insert(modalGroup)
-	commonGroup:insert(navigateModalGroup)
-	commonGroup:insert(fertilizerModalGroup)
-	 _M:toggleModalVisible(false)
-
-
-	_M.checkLives()
+	
 end
 
 function _M:toFront()
 	navigatePatchButton:toFront()
 	navigateModalGroup:toFront()
 	buyFertilizerButton:toFront()
+	buyIAPButton:toFront()
 	livesLabel:toFront()
 end
 
@@ -356,6 +431,12 @@ function _M:toggleModalVisible(visible, modal)
 	if(modal == "fertilizer" or modal == nil) then
 		for i=1,fertilizerModalGroup.numChildren do
 	    	fertilizerModalGroup[i].alpha = alpha
+		end
+	end
+
+	if(modal == "IAP" or modal == nil) then
+		for i=1,IAPModalGroup.numChildren do
+	    	IAPModalGroup[i].alpha = alpha
 		end
 	end
 end
@@ -454,10 +535,20 @@ end
 
 function _M.openBuyFertilizerDialog(event)
 
+	if(event.phase == "ended") then
+    	_M:toggleModalVisible(true, "fertilizer")
 
-    _M:toggleModalVisible(true, "fertilizer")
+    	fertilizerModalGroup:toFront()
+    end
+end
 
-    fertilizerModalGroup:toFront()
+function _M.openBuyIAPDialog(event)
+
+	if(event.phase == "ended") then
+    	_M:toggleModalVisible(true, "IAP")
+
+    	IAPModalGroup:toFront()
+    end
 end
 
 function _M.buyFertilizer(event)
@@ -465,6 +556,15 @@ function _M.buyFertilizer(event)
         local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
         if dx > 5 then
         	fertilizerScrollView:takeFocus(event)
+       end
+    end
+end
+
+function _M.buyIAP(event)
+	if event.phase == "moved" then -- Check if you moved your finger while touching
+        local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
+        if dx > 5 then
+        	IAPScrollView:takeFocus(event)
        end
     end
 end
