@@ -357,7 +357,6 @@ function scene:create( event )
     maxLives = levelConfig.maxLives
     health = levelConfig.startingHealth
     voleSpeed = levelConfig.voleSpeed
-    file:setBox(globals.levelDataFile)
 
     local leftSide = display.screenOriginX + 7
     local rightSide = display.contentWidth - display.screenOriginX - 7
@@ -527,12 +526,10 @@ function gameOver(lost)
             transition.fadeIn(gameOverLabel, {time = 2000})
             file.loseLife()
         else
-            local globalData = require("mod_file-management")
-            globalData:setBox(globals.globalDataFile)
-            local data = globalData.loadGlobalData()
+            local data = file.loadGlobalData()
             if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
                 data.maxLevel = levelConfig.level
-                globalData:saveGlobalData(data)
+                file.saveGlobalData(data)
             end
         end
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
@@ -756,7 +753,7 @@ function animalHit(creature, animal)
         local animalSpeed
 
         if(animal == "deer") then
-            rockSpeed = 300
+            rockSpeed = 600
             animalSpeed = ((display.contentWidth + 80) -creature.x) / globals.animalHitSpeed
         elseif(animal == "bird") then
             rockSpeed = 500

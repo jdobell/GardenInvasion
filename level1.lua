@@ -18,8 +18,8 @@ deerSpeed = 1000,
 catStreak = 2,
 deerStreak = 3,
 eagleStreak = 15,
-birdsInLevel = false,
-deerInLevel = false,
+birdsInLevel = true,
+deerInLevel = true,
 -- gameType options - score, achieveStreaks, finishStreaks ---- planting, harvesting, for special levels
 objective = { gameType = "harvesting", number = 30, cats = 0, eagles = 0, dogs = 0},
 --target 1 should match number
@@ -33,7 +33,8 @@ groundBoosterFreq = 2,
 seedSpeed = 3000,
 seedFrequency = 700,
 seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"},
-targetSeed = "onion-seed"
+targetSeed = "onion-seed",
+levelStartBoosters = {"slow"}
 }
 
 return configuration

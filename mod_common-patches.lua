@@ -30,8 +30,6 @@ function _M.new(sceneGroup, worldNumber)
 
 	table.insert(timers, timer.performWithDelay( 60000, _M.checkLives, 0))
 
-	file:setBox(globals.levelDataFile)
-
 	commonGroup = sceneGroup
 
 	world = worldNumber
@@ -52,12 +50,6 @@ function _M.new(sceneGroup, worldNumber)
 	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5
 	commonGroup:insert(navigatePatchButton)
 	navigatePatchButton.anchorX = 1
-
-	modalGroup = display.newGroup()
-	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 380, 570)
-	modal.x, modal.y = -23, -44
-	modal:addEventListener( "touch", _M.modalTouched )
-	modal:addEventListener( "tap", _M.modalTouched )
 
 	navigateModalGroup = display.newGroup()
 	local navigateModalBackground = display.newImageRect(navigateModalGroup, "transparent-background.png", 380, 570)
@@ -97,9 +89,7 @@ function _M.new(sceneGroup, worldNumber)
     closeNavigationButton.x, closeNavigationButton.y = navigateModal.contentBounds.xMax -18, navigateModal.contentBounds.yMin - 15
     navigateModalGroup:insert(closeNavigationButton)
 
-    local globalData = require("mod_file-management")
-    globalData:setBox(globals.globalDataFile)
-    local data = globalData.loadGlobalData()
+    local data = file.loadGlobalData()
 
 	for k, v in pairs(patchConfig) do
 
@@ -145,7 +135,7 @@ function _M.new(sceneGroup, worldNumber)
 	if(data.lives == nil) then
 		data.lives = globals.maxLives
 		data.lastLifeGiven = os.time()
-		globalData.saveGlobalData(data)
+		file.saveGlobalData(data)
 	end
 
 	livesLabel = display.newText( commonGroup, _s("Lives:").." "..data.lives, display.screenOriginX + 5, display.screenOriginY + 5, globals.font, 16)
@@ -157,23 +147,48 @@ function _M.new(sceneGroup, worldNumber)
 
 ---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
 
-	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 61, modal.contentBounds.yMin + 80, globals.font, 16)
+	modalGroup = display.newGroup()
+
+	local modalBackground = display.newImageRect(modalGroup, "transparent-background.png", 380, 570)
+	modalBackground.x, modalBackground.y = -23, -44
+	modalBackground:addEventListener( "touch", _M.modalTouched )
+	modalBackground:addEventListener( "tap", _M.modalTouched )
+
+	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 280, 440)
+	modal.x, modal.y = display.contentWidth / 2, display.contentHeight / 2
+	modal.anchorX, modal.anchorY = 0.5, 0.5
+	modal:addEventListener( "touch", _M.modalTouched )
+	modal:addEventListener( "tap", _M.modalTouched )
+
+	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 21, modal.contentBounds.yMin + 15, globals.font, 16)
 	levelText:setFillColor( black )
 
-	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, 70, globals.font, 16)
+	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
 	pestText.anchorX = 0.5
 	pestText:setFillColor( black )
 
 	voleChit = display.newImageRect(modalGroup, "vole-chit.png", 40, 40)
-	voleChit.x, voleChit.y = 70, 100
+	voleChit.x, voleChit.y = modal.x - 95, modal.y - 143
 
 	birdChit = display.newImageRect(modalGroup, "bird-chit.png", 40, 40)
-	birdChit.x, birdChit.y = 140, 100
+	birdChit.x, birdChit.y = modal.x - 23, modal.y - 143
 	birdChit.alpha = 0
 
 	deerChit = display.newImageRect(modalGroup, "deer-chit.png", 40, 40)
-	deerChit.x, deerChit.y = 210, 100
+	deerChit.x, deerChit.y = modal.x + 48, modal.y - 143
 	birdChit.alpha = 0
+
+	local objectiveText = display.newText(modalGroup, _s("Objective:"), modal.x - 113, modal.y -55, globals.font, 16)
+	objectiveText.anchorX = 0
+	objectiveText:setFillColor( black )
+
+	local targetText = display.newText(modalGroup, _s("Target:"), modal.x - 113, modal.y + 30, globals.font, 16)
+	targetText.anchorX = 0
+	targetText:setFillColor( black )
+
+	local boosterText = display.newText(modalGroup, _s("Power Ups:"), modal.contentBounds.xMin + modal.width / 2, modal.y + 85, globals.font, 16)
+	boosterText.anchorX = 0.5
+	boosterText:setFillColor( black )
 
 	local playButton = widget.newButton
 	{
@@ -190,20 +205,16 @@ function _M.new(sceneGroup, worldNumber)
 	playButton.x, playButton.y = 220, 420
 	modalGroup:insert(playButton)
 
-	local goBackButton = widget.newButton
+	closeModalButton = widget.newButton
 	{
-	    width = 70,
+	    width = 30,
 	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
+	    defaultFile = "close-button.png",
+	    overFile = "close-button-pressed.png",
 	    onEvent = _M.closeModal,
-	    label = _s("Go Back"),
-	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
 	}
-
-	goBackButton.x, goBackButton.y = 140, 420
-	modalGroup:insert(goBackButton)
+    closeModalButton.x, closeModalButton.y = modal.contentBounds.xMax -18, modal.contentBounds.yMin - 15
+    modalGroup:insert(closeModalButton)
 
 	commonGroup:insert(modalGroup)
 	commonGroup:insert(navigateModalGroup)
@@ -443,7 +454,6 @@ end
 
 function _M:createMarker(x, y, level)
 
-	file:setBox(globals.levelDataFile)
 	local pastLevel = level - 1
 
 	if(pastLevel > 0) then
@@ -536,18 +546,32 @@ end
 function _M.openBuyFertilizerDialog(event)
 
 	if(event.phase == "ended") then
-    	_M:toggleModalVisible(true, "fertilizer")
 
-    	fertilizerModalGroup:toFront()
+		local startingPoint = fertilizerModalGroup.y
+		transition.to(fertilizerModalGroup, {y=startingPoint - 300, time=10, 
+			onComplete=	function(object)
+				_M:toggleModalVisible(true, "fertilizer")
+				fertilizerModalGroup:toFront()
+				transition.to(fertilizerModalGroup, {y=startingPoint, time=800, transition=easing.outBounce})	
+			end
+		})
+
+    	
     end
 end
 
 function _M.openBuyIAPDialog(event)
 
 	if(event.phase == "ended") then
-    	_M:toggleModalVisible(true, "IAP")
 
-    	IAPModalGroup:toFront()
+		local startingPoint = IAPModalGroup.y
+		transition.to(IAPModalGroup, {y=startingPoint - 300, time=10, 
+			onComplete=	function(object)
+				_M:toggleModalVisible(true, "IAP")
+				IAPModalGroup:toFront()
+				transition.to(IAPModalGroup, {y=startingPoint, time=800, transition=easing.outBounce})	
+			end
+		})
     end
 end
 

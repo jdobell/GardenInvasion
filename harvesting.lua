@@ -256,12 +256,10 @@ function gameOver(lost)
             file.loseLife()
         end
 
-        local globalData = require("mod_file-management")
-        globalData:setBox(globals.globalDataFile)
-        local data = globalData.loadGlobalData()
+        local data = file.loadGlobalData()
         if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
             data.maxLevel = levelConfig.level
-            globalData:saveGlobalData(data)
+            file.saveGlobalData(data)
         end
 
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )

@@ -96,8 +96,6 @@ function scene:create( event )
     physics.start()
     physics.setGravity( 0, 0 )
 
-    file:setBox(globals.levelDataFile)
-
     local leftSide = display.screenOriginX + 7
     local rightSide = display.contentWidth - display.screenOriginX - 7
 
@@ -255,13 +253,11 @@ function gameOver(lost)
             transition.fadeIn(gameOverLabel, {time = 2000})
             file.loseLife()
         end
-        
-        local globalData = require("mod_file-management")
-        globalData:setBox(globals.globalDataFile)
-        local data = globalData.loadGlobalData()
+
+        local data = file.loadGlobalData()
         if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
             data.maxLevel = levelConfig.level
-            globalData:saveGlobalData(data)
+            file.saveGlobalData(data)
         end
 
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )

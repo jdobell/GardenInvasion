@@ -28,7 +28,8 @@ target3 = 60,
 --ground booster options - zapRow, zapAll, speedUp, slowDown
 groundBoosters = {"zapRow", "zapAll"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
-groundBoosterFreq = 2
+groundBoosterFreq = 2,
+levelStartBoosters = {"shovel"}
 }
 
 return configuration
