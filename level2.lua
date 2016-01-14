@@ -21,7 +21,7 @@ eagleStreak = 4,
 birdsInLevel = true,
 deerInLevel = true,
 -- gameType options - score, achieveStreaks, finishStreaks
-objective = { gameType = "score", number = 50, cats = 2, eagles = 0, dogs = 0},
+objective = { gameType = "finishStreaks", number = 50, cats = 2, eagles = 1, dogs = 1},
 target1 = 20,
 target2 = 40,
 target3 = 60,

@@ -21,6 +21,8 @@ local livesLabel
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
 local timers = {}
+local targetText
+local objectiveText
 
 local file = require("mod_file-management")
 local widget = require("widget")
@@ -178,11 +180,11 @@ function _M.new(sceneGroup, worldNumber)
 	deerChit.x, deerChit.y = modal.x + 48, modal.y - 143
 	birdChit.alpha = 0
 
-	local objectiveText = display.newText(modalGroup, _s("Objective:"), modal.x - 113, modal.y -55, globals.font, 16)
+	objectiveText = display.newText(modalGroup, _s("Objective:"), modal.x - 113, modal.y -55, 235, 0, globals.font, 16)
 	objectiveText.anchorX = 0
 	objectiveText:setFillColor( black )
 
-	local targetText = display.newText(modalGroup, _s("Target:"), modal.x - 113, modal.y + 30, globals.font, 16)
+	targetText = display.newText(modalGroup, _s("Target:"), modal.x - 113, modal.y + 30, globals.font, 16)
 	targetText.anchorX = 0
 	targetText:setFillColor( black )
 
@@ -486,6 +488,76 @@ function _M.getLevelSelectModal(event)
 
     levelConfig = require(levelSelect)
     levelText.text = _s("Level").." "..levelConfig.level
+
+    data = file.loadLevelData(levelConfig.level)
+
+    local levelScore = data.score
+
+    if(levelScore == nil) then
+    	levelScore = 0
+    end
+
+    if(levelScore >= levelConfig.target3) then
+    	targetText.text = _s("Target:").." ".._s("Complete")
+	elseif(levelScore >= levelConfig.target2) then
+		targetText.text = _s("Target:").." "..levelConfig.target3
+	elseif(levelScore >= levelConfig.target1) then
+		targetText.text = _s("Target:").." "..levelConfig.target2
+	else
+		targetText.text = _s("Target:").." "..levelConfig.target1
+	end
+
+	local streakTypes = 0
+	local streakText = ""
+	if(levelConfig.objective.cats > 0) then
+		if(levelConfig.objective.cats > 1) then
+			streakText = levelConfig.objective.cats.." ".._s("cats")
+		else
+			streakText = levelConfig.objective.cats.." ".._s("cat")
+		end
+		streakTypes = streakTypes + 1
+	end
+	if(levelConfig.objective.eagles > 0) then
+		
+		if(streakTypes > 0) then
+			if(levelConfig.objective.dogs > 0) then
+				streakText = streakText..", "
+			else
+				streakText = streakText.." ".._s("and").." "
+			end
+		end
+
+		if(levelConfig.objective.eagles > 1) then
+			streakText = streakText..levelConfig.objective.eagles.." ".._s("eagles")
+		else
+			streakText = streakText..levelConfig.objective.eagles.." ".._s("eagle")
+		end
+
+		streakTypes = streakTypes + 1
+	end
+	if(levelConfig.objective.dogs > 0) then
+		if(streakTypes > 0) then
+			streakText = streakText.." ".._s("and").." "
+		end
+		
+		if(levelConfig.objective.dogs > 1) then
+			streakText = streakText..levelConfig.objective.dogs.." ".._s("dogs")
+		else
+			streakText = streakText..levelConfig.objective.dogs.." ".._s("dog")
+		end
+	end
+
+	if(levelConfig.objective.gameType == "score") then
+		objectiveText.text = _s("Objective:").." ".._s("ReachScore")
+	elseif(levelConfig.objective.gameType == "achieveStreaks") then
+		objectiveText.text = _s("Objective:").." ".._s("AchieveStreaks1").." "..streakText.." ".._s("AchieveStreaks2")
+	elseif(levelConfig.objective.gameType == "finishStreaks") then
+		objectiveText.text = _s("Objective:").." ".._s("FinishStreaks1").." "..streakText.." ".._s("FinishStreaks2")
+	elseif(levelConfig.objective.gameType == "planting") then
+
+	elseif(levelConfig.objective.gameType == "harvesting") then
+
+	end
 
     _M:toggleModalVisible(true, "modal")
 
