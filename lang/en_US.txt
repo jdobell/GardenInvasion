@@ -37,3 +37,5 @@ eagles = eagles
 and = and
 FinishStreaks1 = Finish this level with 
 FinishStreaks2 = that have not been used
+Planting Level = Planting Level
+Harvesting Level = Harvesting Level

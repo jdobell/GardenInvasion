@@ -21,6 +21,9 @@ local livesLabel
 local closeNavImage = { type="image", filename="close-button.png" }
 local closeNavImagePressed = { type="image", filename="close-button-pressed.png" }
 local timers = {}
+local pestText
+local plantingText
+local harvestingText
 local targetText
 local objectiveText
 
@@ -165,7 +168,15 @@ function _M.new(sceneGroup, worldNumber)
 	levelText = display.newText(modalGroup, "", modal.contentBounds.xMin + 21, modal.contentBounds.yMin + 15, globals.font, 16)
 	levelText:setFillColor( black )
 
-	local pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
+	plantingText = display.newText(modalGroup, _s("Planting Level"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
+	plantingText.anchorX = 0.5
+	plantingText:setFillColor( black )
+
+	harvestingText = display.newText(modalGroup, _s("Harvesting Level"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
+	harvestingText.anchorX = 0.5
+	harvestingText:setFillColor( black )
+
+	pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
 	pestText.anchorX = 0.5
 	pestText:setFillColor( black )
 
@@ -174,11 +185,9 @@ function _M.new(sceneGroup, worldNumber)
 
 	birdChit = display.newImageRect(modalGroup, "bird-chit.png", 40, 40)
 	birdChit.x, birdChit.y = modal.x - 23, modal.y - 143
-	birdChit.alpha = 0
 
 	deerChit = display.newImageRect(modalGroup, "deer-chit.png", 40, 40)
 	deerChit.x, deerChit.y = modal.x + 48, modal.y - 143
-	birdChit.alpha = 0
 
 	objectiveText = display.newText(modalGroup, _s("Objective:"), modal.x - 113, modal.y -55, 235, 0, globals.font, 16)
 	objectiveText.anchorX = 0
@@ -431,7 +440,13 @@ function _M:toggleModalVisible(visible, modal)
 
 	if(modal == "modal" or modal == nil) then
 		for i=1,modalGroup.numChildren do
-	    	modalGroup[i].alpha = alpha
+			if(alpha == 0 or modalGroup[i].show == nil) then
+				modalGroup[i].alpha = alpha
+			elseif(modalGroup[i].show == true) then
+	    		modalGroup[i].alpha = 1
+	    	elseif(modalGroup[i].show == false) then
+	    		modalGroup[i].alpha = 0
+	    	end
 		end
 	end
 
@@ -491,6 +506,43 @@ function _M.getLevelSelectModal(event)
 
     data = file.loadLevelData(levelConfig.level)
 
+    local gameType = levelConfig.objective.gameType
+
+    if(gameType == "score" or gameType == "achieveStreaks" or gameType == "finishStreaks") then
+    	pestText.show = true
+
+	    if(levelConfig.birdsInLevel == true) then
+	    	birdChit.show = true
+	    else
+	    	birdChit.show = false
+	    end
+
+	    if(levelConfig.deerInLevel == true) then
+	    	deerChit.show = true
+	    else
+	    	deerChit.show = false
+	    end
+
+    	voleChit.show = true
+    	plantingText.show = false
+    	harvestingText.show = false
+    else
+		pestText.show = false
+    	voleChit.show = false
+    	birdChit.show = false
+    	deerChit.show = false
+
+    	if(gameType == "planting") then
+    		plantingText.show = true
+    		harvestingText.show = false
+    	elseif(gameType == "harvesting") then
+    		harvestingText.show = true
+    		plantingText.show = false
+    	end
+    end
+
+    --dertermine what to show in target box
+
     local levelScore = data.score
 
     if(levelScore == nil) then
@@ -507,6 +559,7 @@ function _M.getLevelSelectModal(event)
 		targetText.text = _s("Target:").." "..levelConfig.target1
 	end
 
+	--determine what to display in objective box
 	local streakTypes = 0
 	local streakText = ""
 	if(levelConfig.objective.cats > 0) then
@@ -547,27 +600,20 @@ function _M.getLevelSelectModal(event)
 		end
 	end
 
-	if(levelConfig.objective.gameType == "score") then
+	if(gameType == "score") then
 		objectiveText.text = _s("Objective:").." ".._s("ReachScore")
-	elseif(levelConfig.objective.gameType == "achieveStreaks") then
+	elseif(gameType == "achieveStreaks") then
 		objectiveText.text = _s("Objective:").." ".._s("AchieveStreaks1").." "..streakText.." ".._s("AchieveStreaks2")
-	elseif(levelConfig.objective.gameType == "finishStreaks") then
+	elseif(gameType == "finishStreaks") then
 		objectiveText.text = _s("Objective:").." ".._s("FinishStreaks1").." "..streakText.." ".._s("FinishStreaks2")
-	elseif(levelConfig.objective.gameType == "planting") then
+	elseif(gameType == "planting") then
 
-	elseif(levelConfig.objective.gameType == "harvesting") then
+	elseif(gameType == "harvesting") then
 
 	end
 
     _M:toggleModalVisible(true, "modal")
 
-    if(levelConfig.birdsInLevel == false) then
-    	birdChit.alpha = 0
-    end
-
-    if(levelConfig.deerInLevel == false) then
-    	deerChit.alpha = 0
-    end
     modalGroup:toFront()
 end
 
