@@ -6,6 +6,7 @@ local world
 local levelConfig
 local commonGroup
 local modalGroup
+local modal
 local navigateModalGroup
 local fertilizerModalGroup
 local levelText
@@ -23,6 +24,12 @@ local closeNavImagePressed = { type="image", filename="close-button-pressed.png"
 local timers = {}
 local pestText
 local plantingText
+local plantingTargetText
+local targetSeed
+local harvestingSeed1
+local harvestingSeed2
+local harvestingSeed3
+local harvestingSeedExplanation
 local harvestingText
 local targetText
 local objectiveText
@@ -159,7 +166,7 @@ function _M.new(sceneGroup, worldNumber)
 	modalBackground:addEventListener( "touch", _M.modalTouched )
 	modalBackground:addEventListener( "tap", _M.modalTouched )
 
-	local modal = display.newImageRect(modalGroup, "level-start-modal.png", 280, 440)
+	modal = display.newImageRect(modalGroup, "level-start-modal.png", 280, 440)
 	modal.x, modal.y = display.contentWidth / 2, display.contentHeight / 2
 	modal.anchorX, modal.anchorY = 0.5, 0.5
 	modal:addEventListener( "touch", _M.modalTouched )
@@ -172,9 +179,22 @@ function _M.new(sceneGroup, worldNumber)
 	plantingText.anchorX = 0.5
 	plantingText:setFillColor( black )
 
+	plantingTargetText = display.newText(modalGroup, _s("Seed to Plant:"), modal.x - 113, modal.y -125, globals.font, 16)
+	plantingTargetText:setFillColor( black )
+	
 	harvestingText = display.newText(modalGroup, _s("Harvesting Level"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
 	harvestingText.anchorX = 0.5
 	harvestingText:setFillColor( black )
+
+	harvestingSeed1 = display.newImageRect(modalGroup, "harvesting-modal-sprout.png", 20, 20)
+	harvestingSeed1.x, harvestingSeed1.y = modal.x - 30, modal.y - 150
+	harvestingSeed2 = display.newImageRect(modalGroup, "harvesting-modal-sprout-big.png", 20, 20)
+	harvestingSeed2.x, harvestingSeed2.y = modal.x, modal.y - 150
+	harvestingSeed3 = display.newImageRect(modalGroup, "harvesting-modal-plant.png", 20, 20)
+	harvestingSeed3.x, harvestingSeed3.y = modal.x + 30, modal.y - 150
+
+	harvestingSeedExplanation = display.newText(modalGroup, _s("Available Harvest Message"), modal.contentBounds.xMin + 20, modal.y - 130, 237, 0, globals.font, 16)
+	harvestingSeedExplanation:setFillColor( black )
 
 	pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
 	pestText.anchorX = 0.5
@@ -525,7 +545,16 @@ function _M.getLevelSelectModal(event)
 
     	voleChit.show = true
     	plantingText.show = false
+    	plantingTargetText.show = false
     	harvestingText.show = false
+    	harvestingSeedExplanation.show = false
+    	harvestingSeed1.show = false
+    	harvestingSeed2.show = false
+    	harvestingSeed3.show = false
+
+    	if(targetSeed ~= nil) then
+    		targetSeed.show = false
+    	end
     else
 		pestText.show = false
     	voleChit.show = false
@@ -534,10 +563,29 @@ function _M.getLevelSelectModal(event)
 
     	if(gameType == "planting") then
     		plantingText.show = true
-    		harvestingText.show = false
+    		plantingTargetText.show = true
+
+    		targetSeed = display.newImageRect(modalGroup, levelConfig.targetSeed..".png", 40, 40)
+    		targetSeed.x, targetSeed.y = modal.contentBounds.xMin + 160, modal.y -135
+    		targetSeed.show = true
+
+			harvestingText.show = false
+    		harvestingSeedExplanation.show = false
+    		harvestingSeed1.show = false
+    		harvestingSeed2.show = false
+    		harvestingSeed3.show = false
     	elseif(gameType == "harvesting") then
     		harvestingText.show = true
+    		harvestingSeedExplanation.show = true
+    		harvestingSeed1.show = true
+    		harvestingSeed2.show = true
+    		harvestingSeed3.show = true
+
     		plantingText.show = false
+    		if(targetSeed ~= nil) then
+    			targetSeed.show = false
+    		end
+    		plantingTargetText.show = false
     	end
     end
 
@@ -607,9 +655,9 @@ function _M.getLevelSelectModal(event)
 	elseif(gameType == "finishStreaks") then
 		objectiveText.text = _s("Objective:").." ".._s("FinishStreaks1").." "..streakText.." ".._s("FinishStreaks2")
 	elseif(gameType == "planting") then
-
+		objectiveText.text = _s("Objective:").." ".._s("PlantingObjective")
 	elseif(gameType == "harvesting") then
-
+		objectiveText.text = _s("Objective:").." ".._s("HarvestingObjective")
 	end
 
     _M:toggleModalVisible(true, "modal")
