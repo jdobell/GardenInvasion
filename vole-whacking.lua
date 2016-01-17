@@ -851,19 +851,19 @@ function startGroundBoosterMove(voleNumber)
     local boosterObject
 
     if(groundBoosters[booster] == "zapAll") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zapAll.png", 25, 25)
+        boosterObject = display.newImageRect(globalSceneGroup, "zap-all.png", 25, 25)
         boosterObject.boosterType = "zapAll"
         boosterObject:addEventListener("touch", zapAllTouched)
     elseif(groundBoosters[booster] == "zapRow") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zapRow.png", 25, 25)
+        boosterObject = display.newImageRect(globalSceneGroup, "zap-row.png", 25, 25)
         boosterObject.boosterType = "zapRow"
         boosterObject:addEventListener("touch", zapRowTouched)
     elseif(groundBoosters[booster] == "speedUp") then
-        boosterObject = display.newImageRect(globalSceneGroup, "speedUp.png", 25, 25)
+        boosterObject = display.newImageRect(globalSceneGroup, "speed-up.png", 25, 25)
         boosterObject.boosterType = "speedUp"
         boosterObject:addEventListener("touch", speedUpTouched)
     elseif(groundBoosters[booster] == "slowDown") then
-        boosterObject = display.newImageRect(globalSceneGroup, "slowDown.png", 25, 25)
+        boosterObject = display.newImageRect(globalSceneGroup, "slow-down.png", 25, 25)
         boosterObject.boosterType = "slowDown"
         boosterObject:addEventListener("touch", slowDownTouched)
     end

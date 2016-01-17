@@ -23,6 +23,7 @@ function scene:create( event )
 
     local background = display.newImage( sceneGroup, "beet-patch.png", -30, -45 )
 
+--create level params x,y,level
     common:createMarker(5, 370, 1)
     common:createMarker(5, 270, 2)
 

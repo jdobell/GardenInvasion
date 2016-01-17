@@ -23,8 +23,13 @@ function scene:create( event )
 
     local background = display.newImage( sceneGroup, "onion-patch.png", -30, -45 )
 
+--create level params x,y,level
     common:createMarker(5, 370, 1)
     common:createMarker(5, 270, 2)
+    common:createMarker(5, 170, 3)
+    common:createMarker(5, 70, 4)
+    common:createMarker(55, 370, 5)
+    common:createMarker(55, 270, 6)
 
     common:toFront()
 end

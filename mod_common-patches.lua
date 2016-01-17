@@ -33,6 +33,7 @@ local harvestingSeedExplanation
 local harvestingText
 local targetText
 local objectiveText
+local boosterButtons = {}
 
 local file = require("mod_file-management")
 local widget = require("widget")
@@ -186,15 +187,15 @@ function _M.new(sceneGroup, worldNumber)
 	harvestingText.anchorX = 0.5
 	harvestingText:setFillColor( black )
 
-	harvestingSeed1 = display.newImageRect(modalGroup, "harvesting-modal-sprout.png", 20, 20)
-	harvestingSeed1.x, harvestingSeed1.y = modal.x - 30, modal.y - 150
-	harvestingSeed2 = display.newImageRect(modalGroup, "harvesting-modal-sprout-big.png", 20, 20)
-	harvestingSeed2.x, harvestingSeed2.y = modal.x, modal.y - 150
-	harvestingSeed3 = display.newImageRect(modalGroup, "harvesting-modal-plant.png", 20, 20)
-	harvestingSeed3.x, harvestingSeed3.y = modal.x + 30, modal.y - 150
-
-	harvestingSeedExplanation = display.newText(modalGroup, _s("Available Harvest Message"), modal.contentBounds.xMin + 20, modal.y - 130, 237, 0, globals.font, 16)
-	harvestingSeedExplanation:setFillColor( black )
+	harvestingSeed1 = display.newImageRect(modalGroup, "harvesting-modal-sprout.png", 30, 30)
+	harvestingSeed1.x, harvestingSeed1.y = modal.x - 40, modal.y - 130
+	harvestingSeed1.anchorX = 0.5
+	harvestingSeed2 = display.newImageRect(modalGroup, "harvesting-modal-sprout-big.png", 30, 30)
+	harvestingSeed2.x, harvestingSeed2.y = modal.x, modal.y - 130
+	harvestingSeed2.anchorX = 0.5
+	harvestingSeed3 = display.newImageRect(modalGroup, "harvesting-modal-plant.png", 30, 30)
+	harvestingSeed3.x, harvestingSeed3.y = modal.x + 40, modal.y - 130
+	harvestingSeed3.anchorX = 0.5
 
 	pestText = display.newText(modalGroup, _s("Pests"), modal.contentBounds.xMin + modal.width / 2, modal.y -170, globals.font, 16)
 	pestText.anchorX = 0.5
@@ -212,6 +213,11 @@ function _M.new(sceneGroup, worldNumber)
 	objectiveText = display.newText(modalGroup, _s("Objective:"), modal.x - 113, modal.y -55, 235, 0, globals.font, 16)
 	objectiveText.anchorX = 0
 	objectiveText:setFillColor( black )
+
+	noBoosterText = display.newText(modalGroup, _s("BoostersNotUnlocked"), modal.x - 113, modal.y + 110, 235, 0, globals.font, 16)	
+	noBoosterText.anchorX = 0
+	noBoosterText:setFillColor( black )
+
 
 	targetText = display.newText(modalGroup, _s("Target:"), modal.x - 113, modal.y + 30, globals.font, 16)
 	targetText.anchorX = 0
@@ -547,7 +553,6 @@ function _M.getLevelSelectModal(event)
     	plantingText.show = false
     	plantingTargetText.show = false
     	harvestingText.show = false
-    	harvestingSeedExplanation.show = false
     	harvestingSeed1.show = false
     	harvestingSeed2.show = false
     	harvestingSeed3.show = false
@@ -570,13 +575,11 @@ function _M.getLevelSelectModal(event)
     		targetSeed.show = true
 
 			harvestingText.show = false
-    		harvestingSeedExplanation.show = false
     		harvestingSeed1.show = false
     		harvestingSeed2.show = false
     		harvestingSeed3.show = false
     	elseif(gameType == "harvesting") then
     		harvestingText.show = true
-    		harvestingSeedExplanation.show = true
     		harvestingSeed1.show = true
     		harvestingSeed2.show = true
     		harvestingSeed3.show = true
@@ -658,6 +661,29 @@ function _M.getLevelSelectModal(event)
 		objectiveText.text = _s("Objective:").." ".._s("PlantingObjective")
 	elseif(gameType == "harvesting") then
 		objectiveText.text = _s("Objective:").." ".._s("HarvestingObjective")
+	end
+
+	if (levelConfig.levelStartBoosters == nil or table.maxn(levelConfig.levelStartBoosters) == 0) then
+		noBoosterText.show = true
+	else
+		noBoosterText.show = false
+	end
+
+	local boosterX = modal.x - 110
+
+	for i=1, 3 do
+		print(levelConfig.levelStartBoosters[i])
+		if(levelConfig.levelStartBoosters[i] ~= nil) then
+			boosterButtons[i] = display.newImageRect( modalGroup, levelConfig.levelStartBoosters[i]..".png", 30, 30)
+			boosterButtons[i].x, boosterButtons[i].y = boosterX + (30*i), modal.y + 115
+		else
+			print(boosterButtons[i])
+			if(boosterButtons[i] ~= nil) then
+				boosterButtons[i]:removeSelf()
+				boosterButtons[i] = nil
+			end
+			print(boosterButtons[i])
+		end
 	end
 
     _M:toggleModalVisible(true, "modal")
