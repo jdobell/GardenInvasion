@@ -335,7 +335,103 @@ local sequences_zap = {
 
 local sheet_zap = graphics.newImageSheet( "zap.png", zapSheetOptions )
 
-----------------------------Deer sprite setup end-----------------------------
+----------------------------Zap sprite setup end-----------------------------
+
+----------------------------Slow down booster sprite setup --------------------------------
+local slowSheetOptions =
+{
+    width = 100,
+    height = 100,
+    numFrames = 2
+}
+
+local sequences_slow = {
+    -- consecutive frames sequence
+    {
+        name = "slow",
+        start = 1,
+        count = 2,
+        time = 100,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_slow = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
+
+----------------------------Slow down sprite setup end-----------------------------
+
+----------------------------Speed up booster sprite setup --------------------------------
+local fastSheetOptions =
+{
+    width = 100,
+    height = 100,
+    numFrames = 2
+}
+
+local sequences_fast = {
+    -- consecutive frames sequence
+    {
+        name = "fast",
+        start = 1,
+        count = 2,
+        time = 100,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_fast = graphics.newImageSheet( "speed-up.png", fastSheetOptions )
+
+----------------------------Speed up sprite setup end-----------------------------
+
+----------------------------Zap all booster sprite setup --------------------------------
+local zapAllSheetOptions =
+{
+    width = 100,
+    height = 100,
+    numFrames = 2
+}
+
+local sequences_zapAll = {
+    -- consecutive frames sequence
+    {
+        name = "zapAll",
+        start = 1,
+        count = 2,
+        time = 100,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_zapAll = graphics.newImageSheet( "zap-all.png", zapAllSheetOptions )
+
+----------------------------Zap All sprite setup end-----------------------------
+
+----------------------------Zap row booster sprite setup --------------------------------
+local zapRowSheetOptions =
+{
+    width = 100,
+    height = 100,
+    numFrames = 2
+}
+
+local sequences_zapRow = {
+    -- consecutive frames sequence
+    {
+        name = "zapRow",
+        start = 1,
+        count = 2,
+        time = 100,
+        loopCount = 0,
+        loopDirection = "forward"
+    }
+}
+
+local sheet_zapRow = graphics.newImageSheet( "zap-row.png", zapRowSheetOptions )
+
+----------------------------Zap Row sprite setup end-----------------------------
 
 ----------------------------local variable setup-------------------------------
 
@@ -649,8 +745,12 @@ function healthIncrease()
     end
 end
 
-function increaseScore()
-    score = score + scorePerClick
+function increaseScore(amount)
+    if(amount == nil) then
+        amount = 1
+    end
+
+    score = score + (scorePerClick * amount)
     scoreAmountLabel.text = tonumber(score)
 
     if(target1Achieved == false and score >= levelConfig.target1 and score < levelConfig.target2) then
@@ -851,19 +951,24 @@ function startGroundBoosterMove(voleNumber)
     local boosterObject
 
     if(groundBoosters[booster] == "zapAll") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zap-all.png", 25, 25)
+        boosterObject = display.newSprite(globalSceneGroup, sheet_zapAll, sequences_zapAll)
+        boosterObject:scale(.25,.25)
         boosterObject.boosterType = "zapAll"
         boosterObject:addEventListener("touch", zapAllTouched)
+        print(boosterObject)
     elseif(groundBoosters[booster] == "zapRow") then
-        boosterObject = display.newImageRect(globalSceneGroup, "zap-row.png", 25, 25)
+        boosterObject = display.newSprite(globalSceneGroup, sheet_zapRow, sequences_zapRow)
+        boosterObject:scale(.25,.25)
         boosterObject.boosterType = "zapRow"
         boosterObject:addEventListener("touch", zapRowTouched)
     elseif(groundBoosters[booster] == "speedUp") then
-        boosterObject = display.newImageRect(globalSceneGroup, "speed-up.png", 25, 25)
+        boosterObject = display.newSprite(globalSceneGroup, sheet_fast, sequences_fast)
+        boosterObject:scale(.25,.25)
         boosterObject.boosterType = "speedUp"
         boosterObject:addEventListener("touch", speedUpTouched)
     elseif(groundBoosters[booster] == "slowDown") then
-        boosterObject = display.newImageRect(globalSceneGroup, "slow-down.png", 25, 25)
+        boosterObject = display.newSprite(globalSceneGroup, sheet_slow, sequences_slow)
+        boosterObject:scale(.25,.25)
         boosterObject.boosterType = "slowDown"
         boosterObject:addEventListener("touch", slowDownTouched)
     end
@@ -888,38 +993,47 @@ end
 function zapAllTouched(event)
     if (event.phase == "began" and gameEnded == false) then
         local voleNumber = event.target.voleNumber
-
-        local zaps = {}
-
-        for i = 1, levelConfig.numberHoles do
-
-            if(i % 3 == 1) then
-                zap = display.newSprite(sheet_zap, sequences_zap)
-                zap.x = holes[i].bottom.contentBounds.xMin
-                zap.y = holes[i].bottom.contentBounds.yMin - 35
-                zap:play()
-
-                table.insert(zaps, zap)
-            end
-
-            local vole = holes[i].vole
+        if(holes[voleNumber].vole.zapped == nil or holes[voleNumber].vole.zapped[voleNumber] ~= "on") then
             
-            if(vole.zapped == nil) then
-                vole.zapped = {} 
+            local zapAll = event.target
+
+            if(zapAll.touched == nil) then
+                zapAll.touched = true
+                zapAll:setFrame(2)
+
+                local zaps = {}
+
+                for i = 1, levelConfig.numberHoles do
+
+                    if(i % 3 == 1) then
+                        zap = display.newSprite(sheet_zap, sequences_zap)
+                        zap.x = holes[i].bottom.contentBounds.xMin
+                        zap.y = holes[i].bottom.contentBounds.yMin - 35
+                        zap:play()
+
+                        table.insert(zaps, zap)
+                    end
+
+                    local vole = holes[i].vole
+                    
+                    if(vole.zapped == nil) then
+                        vole.zapped = {} 
+                    end
+                    
+                    vole.zapped[voleNumber] = "on"
+
+                    voleZapped(vole)
+                end
+
+                if(zap ~= nil) then
+                    timer.performWithDelay(3000, function() 
+                                                for k, v in pairs(zaps) do
+                                                    destroySelf(v)
+                                                end
+                                                voleZappedComplete(voleNumber) 
+                                            end)
+                end
             end
-            
-            vole.zapped[voleNumber] = "on"
-
-            voleZapped(vole)
-        end
-
-        if(zap ~= nil) then
-            timer.performWithDelay(3000, function() 
-                                        for k, v in pairs(zaps) do
-                                            destroySelf(v)
-                                        end
-                                        voleZappedComplete(voleNumber) 
-                                    end)
         end
     end
 end
@@ -927,42 +1041,53 @@ end
 function zapRowTouched(event)
     if (event.phase == "began" and gameEnded == false) then
         local voleNumber = event.target.voleNumber
-        local firstVole
-        local lastVole
 
-        if(voleNumber % 3 == 0) then
-            firstVole = voleNumber - 2
-            lastVole = voleNumber
-        elseif(voleNumber % 3 == 1) then
-            firstVole = voleNumber
-            lastVole = voleNumber + 2
-        elseif(voleNumber % 3 == 2) then
-            firstVole = voleNumber - 1
-            lastVole = voleNumber + 1
-        end
+        if(holes[voleNumber].vole.zapped == nil or holes[voleNumber].vole.zapped[voleNumber] ~= "on") then
 
-        local zap = display.newSprite(sheet_zap, sequences_zap)
-        zap.x = holes[firstVole].bottom.contentBounds.xMin
-        zap.y = holes[firstVole].bottom.contentBounds.yMin - 35
-        zap:play()
+            local zapRow = event.target
+
+            if(zapRow.touched == nil) then
+                zapRow.touched = true
+                zapRow:setFrame(2)
+
+                local firstVole
+                local lastVole
+
+                if(voleNumber % 3 == 0) then
+                    firstVole = voleNumber - 2
+                    lastVole = voleNumber
+                elseif(voleNumber % 3 == 1) then
+                    firstVole = voleNumber
+                    lastVole = voleNumber + 2
+                elseif(voleNumber % 3 == 2) then
+                    firstVole = voleNumber - 1
+                    lastVole = voleNumber + 1
+                end
+
+                local zap = display.newSprite(sheet_zap, sequences_zap)
+                zap.x = holes[firstVole].bottom.contentBounds.xMin
+                zap.y = holes[firstVole].bottom.contentBounds.yMin - 35
+                zap:play()
 
 
-        for i = firstVole, lastVole do
-            local vole = holes[i].vole
-            
-            if(vole.zapped == nil) then
-                vole.zapped = {} 
+                for i = firstVole, lastVole do
+                    local vole = holes[i].vole
+                    
+                    if(vole.zapped == nil) then
+                        vole.zapped = {} 
+                    end
+                    
+                    vole.zapped[voleNumber] = "on"
+
+                    voleZapped(vole)
+                end
+
+                timer.performWithDelay(3000, function() 
+                                                destroySelf(zap)
+                                                voleZappedComplete(voleNumber) 
+                                            end)
             end
-            
-            vole.zapped[voleNumber] = "on"
-
-            voleZapped(vole)
         end
-
-        timer.performWithDelay(3000, function() 
-                                        destroySelf(zap)
-                                        voleZappedComplete(voleNumber) 
-                                    end)
     end
 end
 
@@ -1027,19 +1152,29 @@ end
 
 function speedUpTouched(event)
     if (event.phase == "began" and gameEnded == false) then
-        voleSpeed = voleSpeed - 200
-        timer.performWithDelay(3000, function() 
+        local fast = event.target
+        if(fast.touched == nil) then
+            fast.touched = true
+            fast:setFrame(2)
+            voleSpeed = voleSpeed - 200
+            timer.performWithDelay(3000, function() 
                                         voleSpeed = voleSpeed + 200 
                                     end, 1)
+        end
     end
 end
 
 function slowDownTouched(event)
     if (event.phase == "began" and gameEnded == false) then
-        voleSpeed = voleSpeed + 200
-        timer.performWithDelay(3000, function() 
+        local slow = event.target
+        if(slow.touched == nil) then
+            slow.touched = true
+            slow:setFrame(2)
+            voleSpeed = voleSpeed + 200
+            timer.performWithDelay(3000, function() 
                                         voleSpeed = voleSpeed - 200 
                                     end, 1)
+        end
     end
 end
 

@@ -323,7 +323,7 @@ function seedClicked(event)
     if event.phase == "moved" then -- Check if you moved your finger while touching
         if(time > 0) then
             local dy = math.abs( event.y - event.yStart ) -- Get the y-transition of the touch-input
-            if (dy > 5 and seed.isClickable) then
+            if (dy > 3 and seed.isClickable) then
                 seed.isClickable = false
 
                 transition.cancel(seed)

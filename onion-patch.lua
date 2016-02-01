@@ -62,6 +62,7 @@ function scene:hide( event )
         -- Example: stop timers, stop animation, stop audio, etc.
     elseif ( phase == "did" ) then
         composer.removeScene( "onion-patch", false )
+        common:cleanUp()
         -- Called immediately after scene goes off screen.
     end
 end

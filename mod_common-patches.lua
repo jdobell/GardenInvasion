@@ -594,10 +594,11 @@ function _M.getLevelSelectModal(event)
 
     --dertermine what to show in target box
 
-    local levelScore = data.score
-
-    if(levelScore == nil) then
+    local levelScore
+    if(data == nil or data.score == nil) then
     	levelScore = 0
+    else
+    	levelScore = data.score
     end
 
     if(levelScore >= levelConfig.target3) then
@@ -672,17 +673,15 @@ function _M.getLevelSelectModal(event)
 	local boosterX = modal.x - 110
 
 	for i=1, 3 do
-		print(levelConfig.levelStartBoosters[i])
 		if(levelConfig.levelStartBoosters[i] ~= nil) then
 			boosterButtons[i] = display.newImageRect( modalGroup, levelConfig.levelStartBoosters[i]..".png", 30, 30)
 			boosterButtons[i].x, boosterButtons[i].y = boosterX + (30*i), modal.y + 115
 		else
-			print(boosterButtons[i])
 			if(boosterButtons[i] ~= nil) then
+				print(boosterButtons[i])
 				boosterButtons[i]:removeSelf()
 				boosterButtons[i] = nil
 			end
-			print(boosterButtons[i])
 		end
 	end
 
@@ -724,7 +723,6 @@ function _M.goToPatch(event)
         	navigateScrollView:takeFocus(event)
        end
     elseif(event.phase == "ended") then
-    	print(event.target.enabled)
     	if(event.target.enabled) then
     		_M.toggleModalVisible(false)
     		if(event.target.world ~= world) then
@@ -796,6 +794,10 @@ function _M:cancelTimers()
 	for k,v in pairs(timers) do
 		timer.cancel(v)
 	end
+end
+
+function _M:cleanUp()
+	boosterButtons = {}
 end
 
 return _M
