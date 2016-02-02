@@ -15,9 +15,6 @@ birdSpeed = 4000,
 deerFrequencyLow = 5000,
 deerFrequencyHigh = 10000,
 deerSpeed = 1000,
-catStreak = 2,
-deerStreak = 3,
-eagleStreak = 15,
 birdsInLevel = true,
 deerInLevel = true,
 -- gameType options - score, achieveStreaks, finishStreaks ---- planting, harvesting, for special levels
@@ -34,8 +31,10 @@ seedSpeed = 3000,
 seedFrequency = 700,
 seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"},
 targetSeed = "onion-seed",
---levelStartBooster options - slow-down
-levelStartBoosters = {"slow-down"}
+--levelStartBooster options - slowDown
+levelStartBoosters = {"slowDown"},
+--must be in the same order as level Start Boosters and all must match
+levelStartBoostersMax = {slowDown = 1},
 }
 
 return configuration

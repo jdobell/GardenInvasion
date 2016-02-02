@@ -1345,15 +1345,15 @@ function increaseStreak()
     streak = streak + 1
 
     --no switch statement in lua...sigh
-    if(streak == levelConfig.catStreak) then
+    if(streak == globals.catStreak) then
         catStreakAchieved()
-    elseif(streak == levelConfig.deerStreak) then
+    elseif(streak == globals.deerStreak) then
         if(levelConfig.deerInLevel) then
             deerStreakAchieved()
         else
             catStreakAchieved()
         end
-    elseif(streak == levelConfig.eagleStreak) then
+    elseif(streak == globals.eagleStreak) then
         if(levelConfig.birdsInLevel) then
             eagleStreakAchieved()
         elseif(levelConfig.deerInLevel) then

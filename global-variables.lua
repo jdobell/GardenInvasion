@@ -18,7 +18,10 @@ globalDataFile = "garden_invasion_globals",
 minWorldAccessible = 0,
 maxLives = 3,
 timeBetweenLives = 180, -- in seconds
-animalHitSpeed = 1000
+animalHitSpeed = 1000,
+catStreak = 2,
+deerStreak = 3,
+eagleStreak = 15,
 }
 
 local localization = require( "mod_localize" )

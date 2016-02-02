@@ -34,10 +34,24 @@ local harvestingText
 local targetText
 local objectiveText
 local boosterButtons = {}
+local boosterSpriteSheets = {}
+local boostersSelected = {}
 
 local file = require("mod_file-management")
 local widget = require("widget")
 local patchConfig = require("patch-configuration")
+
+----------------------------Slow down booster sprite setup --------------------------------
+local slowSheetOptions =
+{
+    width = 100,
+    height = 100,
+    numFrames = 2
+}
+
+boosterSpriteSheets["slowDown"] = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
+
+----------------------------Slow down sprite setup end-----------------------------
 
 function _M.new(sceneGroup, worldNumber)
 
@@ -530,6 +544,8 @@ function _M.getLevelSelectModal(event)
     levelConfig = require(levelSelect)
     levelText.text = _s("Level").." "..levelConfig.level
 
+    boostersSelected = {}
+
     data = file.loadLevelData(levelConfig.level)
 
     local gameType = levelConfig.objective.gameType
@@ -673,15 +689,51 @@ function _M.getLevelSelectModal(event)
 	local boosterX = modal.x - 110
 
 	for i=1, 3 do
+
+		if(boosterButtons[i] ~= nil) then
+			boosterButtons[i].availableText:removeSelf()
+			boosterButtons[i].boosterSelectedText:removeSelf()
+			boosterButtons[i]:removeSelf()
+			boosterButtons[i].boosterSelected = nil
+			boosterButtons[i] = nil
+
+		end
+
 		if(levelConfig.levelStartBoosters[i] ~= nil) then
-			boosterButtons[i] = display.newImageRect( modalGroup, levelConfig.levelStartBoosters[i]..".png", 30, 30)
-			boosterButtons[i].x, boosterButtons[i].y = boosterX + (30*i), modal.y + 115
-		else
-			if(boosterButtons[i] ~= nil) then
-				print(boosterButtons[i])
-				boosterButtons[i]:removeSelf()
-				boosterButtons[i] = nil
+
+
+			boosterButtons[i] = widget.newButton(
+								    {
+								    	parent = modalGroup,
+								        sheet = boosterSpriteSheets[levelConfig.levelStartBoosters[i]],
+								        defaultFrame = 1,
+								        overFrame = 2,
+								        onEvent = _M.boosterSelected
+								    }
+								)
+			boosterButtons[i].booster = levelConfig.levelStartBoosters[i]
+			modalGroup:insert(boosterButtons[i])
+			boosterButtons[i]:scale(.35,.35)
+			boosterButtons[i].x, boosterButtons[i].y = boosterX + (20*i), modal.y + 107
+
+			local data = file.loadGlobalData()
+			if(data.slowBoosters == nil) then
+				data.slowBoosters = 0
+				file.saveGlobalData(data)
+			else
+				-- data.slowBoosters = 3
+				-- file.saveGlobalData(data)
 			end
+
+			local availableText = display.newText( modalGroup, data.slowBoosters, boosterButtons[i].x+30, boosterButtons[i].y+30, globals.font, 14)
+			availableText:setFillColor( black )
+			boosterButtons[i].availableText = availableText
+			boosterButtons[i].available = data.slowBoosters
+
+			local boosterSelectedText = display.newText( modalGroup, "", boosterButtons[i].x + 12, boosterButtons[i].y + 7, globals.font, 20)
+			boosterSelectedText:setFillColor( black )
+			boosterButtons[i].boosterSelectedText = boosterSelectedText
+			boosterButtons[i].boosterSelected = 0
 		end
 	end
 
@@ -763,6 +815,27 @@ function _M.openBuyIAPDialog(event)
 			end
 		})
     end
+end
+
+function _M.boosterSelected(event)
+
+	if(event.phase == "ended") then
+		local booster = event.target
+
+		if(booster.available > 0) then
+			local currentSelected = boostersSelected[booster.booster]
+
+			if(currentSelected == nil) then
+				currentSelected = 0
+			end
+
+			boostersSelected[booster.booster] = currentSelected + 1
+			booster.boosterSelected = boostersSelected[booster.booster]
+			booster.boosterSelectedText.text = booster.boosterSelected
+			booster.available = booster.available - 1
+			booster.availableText.text = booster.available
+		end
+	end
 end
 
 function _M.buyFertilizer(event)
