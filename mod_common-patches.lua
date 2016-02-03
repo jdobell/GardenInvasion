@@ -155,17 +155,19 @@ function _M.new(sceneGroup, worldNumber)
 		navigateScrollView:insert(button)
 	end
 
-	if(data == nil) then
-		data = {}
+	local globalData = file.loadGlobalData()
+
+	if(globalData == nil) then
+		globalData = {}
 	end
 
-	if(data.lives == nil) then
-		data.lives = globals.maxLives
-		data.lastLifeGiven = os.time()
-		file.saveGlobalData(data)
+	if(globalData.lives == nil) then
+		globalData.lives = globals.maxLives
+		globalData.lastLifeGiven = os.time()
+		file.saveGlobalData(globalData)
 	end
 
-	livesLabel = display.newText( commonGroup, _s("Lives:").." "..data.lives, display.screenOriginX + 5, display.screenOriginY + 5, globals.font, 16)
+	livesLabel = display.newText( commonGroup, _s("Lives:").." "..globalData.lives, display.screenOriginX + 5, display.screenOriginY + 5, globals.font, 16)
 
 	-------------Buy fertilizer dialog is also In App Purchase Dialog-----------------------------
 	_M:createBuyFertilizerDialog()
@@ -716,19 +718,20 @@ function _M.getLevelSelectModal(event)
 			boosterButtons[i]:scale(.35,.35)
 			boosterButtons[i].x, boosterButtons[i].y = boosterX + (20*i), modal.y + 107
 
-			local data = file.loadGlobalData()
-			if(data.slowBoosters == nil) then
-				data.slowBoosters = 0
-				file.saveGlobalData(data)
+			local globalData = file.loadGlobalData()
+
+			if(globalData.slowDown == nil) then
+				globalData.slowDown = 0
+				file.saveGlobalData(globalData)
 			else
-				-- data.slowBoosters = 3
-				-- file.saveGlobalData(data)
+				--globalData.slowDown = 3
+				--file.saveGlobalData(globalData)
 			end
 
-			local availableText = display.newText( modalGroup, data.slowBoosters, boosterButtons[i].x+30, boosterButtons[i].y+30, globals.font, 14)
+			local availableText = display.newText( modalGroup, globalData.slowDown, boosterButtons[i].x+30, boosterButtons[i].y+30, globals.font, 14)
 			availableText:setFillColor( black )
 			boosterButtons[i].availableText = availableText
-			boosterButtons[i].available = data.slowBoosters
+			boosterButtons[i].available = globalData.slowDown
 
 			local boosterSelectedText = display.newText( modalGroup, "", boosterButtons[i].x + 12, boosterButtons[i].y + 7, globals.font, 20)
 			boosterSelectedText:setFillColor( black )
@@ -746,7 +749,19 @@ function _M.goToLevel(event)
 	if(event.phase == "ended") then
 		_M:toggleModalVisible(false)
 		_M:cancelTimers()
-    	composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig}} )
+
+		local data = file.loadGlobalData()
+
+		for k,v in pairs(boostersSelected) do
+
+			if(data[k] ~= nil) then
+				data[k] = data[k] - v
+			end
+		end
+
+		file.saveGlobalData(data)
+
+    	composer.gotoScene(levelConfig.scene, {params = {levelConfig = levelConfig, boosters = boostersSelected}} )
     end
 end
 

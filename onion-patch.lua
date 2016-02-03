@@ -19,6 +19,7 @@ local sceneGroup
 function scene:create( event )
 
     sceneGroup = self.view
+    
     common.new(sceneGroup, patchConfig.world1.world)
 
     local background = display.newImage( sceneGroup, "onion-patch.png", -30, -45 )

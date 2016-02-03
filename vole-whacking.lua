@@ -59,6 +59,7 @@ local numberZappedVoles = 0
 local zappedVoles = {}
 local voleTimer
 local volesPaused = false
+local data
 
 ----------------------------Vole sprite setup --------------------------------
 local holes = {}
@@ -454,6 +455,16 @@ function scene:create( event )
     health = levelConfig.startingHealth
     voleSpeed = levelConfig.voleSpeed
 
+    local startingBoosters = event.params.boosters
+
+    if(startingBoosters ~= nil) then
+        for k,v in pairs(startingBoosters) do
+            if(k == "slowDown") then
+                voleSpeed = voleSpeed + 200
+            end
+        end
+    end
+
     local leftSide = display.screenOriginX + 7
     local rightSide = display.contentWidth - display.screenOriginX - 7
 
@@ -622,12 +633,13 @@ function gameOver(lost)
             transition.fadeIn(gameOverLabel, {time = 2000})
             file.loseLife()
         else
-            local data = file.loadGlobalData()
+            data = file.loadGlobalData()
             if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
                 data.maxLevel = levelConfig.level
                 file.saveGlobalData(data)
             end
         end
+
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )
     end
 end
@@ -648,7 +660,7 @@ function levelCountdown()
         elseif(levelConfig.objective.gameType == "achieveStreaks") then
             local streakComplete = false
             if(levelConfig.objective.cats > 0) then
-                if(catsAchieved >= levelConfig.objective.cats) then
+                if(catsAchieved >= levelConfig.objective.cats and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false
@@ -656,7 +668,7 @@ function levelCountdown()
             end
 
              if(levelConfig.objective.eagles > 0) then
-                if(eaglesAchieved >= levelConfig.objective.eagles) then
+                if(eaglesAchieved >= levelConfig.objective.eagles and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false
@@ -664,7 +676,7 @@ function levelCountdown()
             end
 
              if(levelConfig.objective.dogs > 0) then
-                if(dogsAchieved >= levelConfig.objective.dogs) then
+                if(dogsAchieved >= levelConfig.objective.dogs and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false
@@ -678,7 +690,7 @@ function levelCountdown()
              local streakComplete = false
             
             if(levelConfig.objective.cats > 0) then
-                if(numberCats >= levelConfig.objective.cats) then
+                if(numberCats >= levelConfig.objective.cats and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false
@@ -686,7 +698,7 @@ function levelCountdown()
             end
 
              if(levelConfig.objective.eagles > 0) then
-                if(numberEagles >= levelConfig.objective.eagles) then
+                if(numberEagles >= levelConfig.objective.eagles and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false
@@ -694,7 +706,7 @@ function levelCountdown()
             end
 
              if(levelConfig.objective.dogs > 0) then
-                if(numberDogs >= levelConfig.objective.dogs) then
+                if(numberDogs >= levelConfig.objective.dogs and score >= levelConfig.objective.number) then
                     streakComplete = true
                 else
                     streakComplete = false

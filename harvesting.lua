@@ -254,12 +254,12 @@ function gameOver(lost)
         if(lost)then
             transition.fadeIn(gameOverLabel, {time = 2000})
             file.loseLife()
-        end
-
-        local data = file.loadGlobalData()
-        if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
-            data.maxLevel = levelConfig.level
-            file.saveGlobalData(data)
+        else
+            local data = file.loadGlobalData()
+            if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
+                data.maxLevel = levelConfig.level
+                file.saveGlobalData(data)
+            end
         end
 
         timer.performWithDelay(3000, function() composer.gotoScene(levelConfig.parentScene) end )

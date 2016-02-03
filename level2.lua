@@ -2,7 +2,7 @@ local configuration = {
 level = 2,
 scene = "vole-whacking",
 parentScene = "onion-patch",
-levelTime = 15,
+levelTime = 5,
 startingHealth = 15,
 maxLives = 30,
 veggie = "beet",
@@ -21,15 +21,15 @@ eagleStreak = 4,
 birdsInLevel = false,
 deerInLevel = false,
 -- gameType options - score, achieveStreaks, finishStreaks
-objective = { gameType = "achieveStreaks", number = 50, cats = 1, eagles = 0, dogs = 0},
-target1 = 20,
-target2 = 40,
-target3 = 60,
+objective = { gameType = "achieveStreaks", number = 10, cats = 1, eagles = 0, dogs = 0},
+target1 = 10,
+target2 = 60,
+target3 = 70,
 --ground booster options - zapRow, zapAll, speedUp, slowDown
 groundBoosters = {"zapRow", "zapAll"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
 groundBoosterFreq = 2,
-levelStartBoosters = {}
+levelStartBoosters = {"slowDown"},
 }
 
 return configuration

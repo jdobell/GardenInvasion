@@ -6,26 +6,25 @@ local box
 local file = {}
 
 function file:setBox(boxName)
+
     box = GGData:new(boxName) -- You may name the 'box' anything you like.
-
     local securityKey = "ThEoDa" -- Change this for each app
-
     box:enableIntegrityControl( crypto.sha512, securityKey )
-
-    local corruptEntries = box:verifyIntegrity()
-
 end
 
 function file.loadLevelData(level)
     
     file:setBox(globals.levelDataFile)
     local levelData = box:get("level"..level)
+    local corruptEntries = box:verifyIntegrity()
 
     return levelData
 end
 
 function file.loadGlobalData()
+
     file:setBox(globals.globalDataFile)
+
     local globalData = box:get("globaldata")
 
     return globalData
@@ -80,7 +79,7 @@ function file.checkLives()
     local now = os.time()
     --round both now and last saved life down to the nearest half hour to calculate how many ***half hours*** have passed
     now = now - (now % globals.timeBetweenLives)
-    print(data)
+
     local lastLife = data.lastLifeGiven
     lastLife = lastLife - (lastLife % globals.timeBetweenLives)
 
