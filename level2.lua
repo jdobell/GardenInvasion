@@ -2,11 +2,11 @@ local configuration = {
 level = 2,
 scene = "vole-whacking",
 parentScene = "onion-patch",
-levelTime = 5,
+levelTime = 10,
 startingHealth = 15,
 maxLives = 30,
 veggie = "beet",
-numberHoles = 9,
+numberHoles = 6,
 voleFrequency = 1000,
 voleSpeed = 1000,
 birdFrequencyLow = 2000,
@@ -30,6 +30,7 @@ groundBoosters = {"zapRow", "zapAll"},
 ----ground booster frequency - number between 2 and infinity. Greater the number, less frequent boosters.
 groundBoosterFreq = 2,
 levelStartBoosters = {"slowDown"},
+levelStartBoostersMax = {slowDown = 1},
 }
 
 return configuration

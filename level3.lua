@@ -6,7 +6,7 @@ levelTime = 60,
 startingHealth = 10,
 maxLives = 30,
 veggie = "beet",
-numberHoles = 6,
+numberHoles = 12,
 voleFrequency = 1000,
 voleSpeed = 1000,
 birdFrequencyLow = 2000,
@@ -35,7 +35,9 @@ seedFrequency = 700,
 seeds = {"onion-seed", "beet-seed", "carrot-seed", "turnip-seed"},
 targetSeed = "onion-seed",
 --levelStartBooster options - slow-down
-levelStartBoosters = {"slow-down"}
+levelStartBoosters = {},
+--must be in the same order as level Start Boosters and all must match
+levelStartBoostersMax = {},
 }
 
 return configuration

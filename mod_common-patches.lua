@@ -36,6 +36,7 @@ local objectiveText
 local boosterButtons = {}
 local boosterSpriteSheets = {}
 local boostersSelected = {}
+local boosterMaxText 
 
 local file = require("mod_file-management")
 local widget = require("widget")
@@ -243,6 +244,11 @@ function _M.new(sceneGroup, worldNumber)
 	boosterText.anchorX = 0.5
 	boosterText:setFillColor( black )
 
+	boosterMaxText = display.newText(modalGroup, _s("Maximum booster reached"), modal.contentBounds.xMin + 20, modal.y + 185, globals.font, 14)
+	boosterMaxText.anchorX = 0
+	boosterMaxText:setFillColor(1,0,0)
+	boosterMaxText.show = false
+
 	local playButton = widget.newButton
 	{
 	    width = 70,
@@ -311,7 +317,7 @@ function _M:createBuyFertilizerDialog()
 
     fertilizerScrollView.anchorX, fertilizerScrollView.anchorY = 0.5, 0.5
 
-	local fertilizerModal = display.newImageRect(fertilizerModalGroup, "buy-fertilizer-background.png", 250, 100)
+	local fertilizerModal = display.newImageRect(fertilizerModalGroup, "buy-fertilizer-background.png", 250, 130)
 	fertilizerModal.x, fertilizerModal.y = display.contentCenterX, display.contentCenterY
 	fertilizerModal.anchorX, fertilizerModal.anchorY = 0.5, 0.5
 	fertilizerModalGroup:insert( fertilizerModal )
@@ -348,8 +354,11 @@ function _M:createBuyFertilizerDialog()
 	fertilizerScoopGroup:insert(scoopButton)
 	commonGroup:insert(fertilizerScoopGroup)
 
-	local scoopText = display.newText(fertilizerScoopGroup, _s("1 Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
+	local scoopText = display.newText(fertilizerScoopGroup, _s("Scoop"), scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMax, globals.font, 13)
 	scoopText.anchorX, scoopText.anchorY = 0.5, 1
+
+	local scoopAmountLabel = display.newText(fertilizerScoopGroup, scoopButton.amount, scoopButton.contentBounds.xMin + scoopButton.width / 2, scoopButton.contentBounds.yMin + scoopButton.height / 2, globals.font, 16)
+	scoopAmountLabel.anchorX, scoopAmountLabel.anchorY = 0.5, 0.5
 
 	fertilizerScrollView:insert(fertilizerScoopGroup)
 
@@ -369,9 +378,11 @@ function _M:createBuyFertilizerDialog()
 	fertilizerBucketGroup:insert(bucketButton)
 	commonGroup:insert(fertilizerBucketGroup)
 
-	local bucketText = display.newText(fertilizerBucketGroup, _s("1 Bucket"), bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMax, globals.font, 13)
+	local bucketText = display.newText(fertilizerBucketGroup, _s("Bucket"), bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMax, globals.font, 13)
 	bucketText.anchorX, bucketText.anchorY = 0.5, 1
 
+	local bucketAmountLabel = display.newText(fertilizerBucketGroup, bucketButton.amount, bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMin + bucketButton.height / 2, globals.font, 16)
+	bucketAmountLabel.anchorX, bucketAmountLabel.anchorY = 0.5, 0.5
 
 	fertilizerScrollView:insert(fertilizerBucketGroup)
 
@@ -391,8 +402,11 @@ function _M:createBuyFertilizerDialog()
 	fertilizerBagGroup:insert(bagButton)
 	commonGroup:insert(fertilizerBagGroup)
 
-	local bagText = display.newText(fertilizerBagGroup, _s("1 Bag"), bagButton.contentBounds.xMin + bagButton.width / 2, bagButton.contentBounds.yMax, globals.font, 13)
+	local bagText = display.newText(fertilizerBagGroup, _s("Bag"), bagButton.contentBounds.xMin + bagButton.width / 2, bagButton.contentBounds.yMax, globals.font, 13)
 	bagText.anchorX, bagText.anchorY = 0.5, 1
+
+	local bagAmountLabel = display.newText(fertilizerBagGroup, bagButton.amount, bagButton.contentBounds.xMin + bagButton.width / 2, bagButton.contentBounds.yMin + bagButton.height / 2, globals.font, 16)
+	bagAmountLabel.anchorX, bagAmountLabel.anchorY = 0.5, 0.5
 
 
 	fertilizerScrollView:insert(fertilizerBagGroup)
@@ -431,7 +445,7 @@ function _M:createBuyInAppPurchaseDialog()
 
     IAPScrollView.anchorX, IAPScrollView.anchorY = 0.5, 0.5
 
-	local IAPModal = display.newImageRect(IAPModalGroup, "buy-fertilizer-background.png", 250, 100)
+	local IAPModal = display.newImageRect(IAPModalGroup, "buy-fertilizer-background.png", 250, 130)
 	IAPModal.x, IAPModal.y = display.contentCenterX, display.contentCenterY
 	IAPModal.anchorX, IAPModal.anchorY = 0.5, 0.5
 	IAPModalGroup:insert( IAPModal )
@@ -532,10 +546,6 @@ function _M:createMarker(x, y, level)
     levelMarker.level = level
     levelMarker:addEventListener("touch", _M.getLevelSelectModal)
 
-local data = file.loadLevelData(level)    
-	if(data ~= nil) then
-		local dataText = display.newText(commonGroup, data.score, x, y, globals.font, 16)
-	end
 end
 
 function _M.getLevelSelectModal(event)
@@ -720,23 +730,33 @@ function _M.getLevelSelectModal(event)
 
 			local globalData = file.loadGlobalData()
 
-			if(globalData.slowDown == nil) then
-				globalData.slowDown = 0
+			if(globalData[levelConfig.levelStartBoosters[i]] == nil) then
+				globalData[levelConfig.levelStartBoosters[i]] = 0
 				file.saveGlobalData(globalData)
 			else
-				--globalData.slowDown = 3
+				--globalData[levelConfig.levelStartBoosters[i]] = 3
 				--file.saveGlobalData(globalData)
 			end
 
-			local availableText = display.newText( modalGroup, globalData.slowDown, boosterButtons[i].x+30, boosterButtons[i].y+30, globals.font, 14)
+			local available = globalData[levelConfig.levelStartBoosters[i]]
+
+			if(available == 0) then
+				available = "$"
+			end
+
+			local availableText = display.newText( modalGroup, available, boosterButtons[i].x+30, boosterButtons[i].y+30, globals.font, 14)
 			availableText:setFillColor( black )
 			boosterButtons[i].availableText = availableText
-			boosterButtons[i].available = globalData.slowDown
+			boosterButtons[i].available = globalData[levelConfig.levelStartBoosters[i]]
+			boosterButtons[i].max = levelConfig.levelStartBoostersMax[levelConfig.levelStartBoosters[i]]
 
 			local boosterSelectedText = display.newText( modalGroup, "", boosterButtons[i].x + 12, boosterButtons[i].y + 7, globals.font, 20)
 			boosterSelectedText:setFillColor( black )
 			boosterButtons[i].boosterSelectedText = boosterSelectedText
 			boosterButtons[i].boosterSelected = 0
+
+			--clean up variable about to be orphaned
+			available = nil
 		end
 	end
 
@@ -844,11 +864,20 @@ function _M.boosterSelected(event)
 				currentSelected = 0
 			end
 
-			boostersSelected[booster.booster] = currentSelected + 1
-			booster.boosterSelected = boostersSelected[booster.booster]
-			booster.boosterSelectedText.text = booster.boosterSelected
-			booster.available = booster.available - 1
-			booster.availableText.text = booster.available
+			if(currentSelected < booster.max) then
+				boostersSelected[booster.booster] = currentSelected + 1
+				booster.boosterSelected = boostersSelected[booster.booster]
+				booster.boosterSelectedText.text = booster.boosterSelected
+				booster.available = booster.available - 1
+				booster.availableText.text = booster.available
+			else
+				boosterMaxText.alpha = 1
+				transition.fadeOut( boosterMaxText, {time=2000} )
+			end
+		end
+
+		if(booster.available == 0) then
+			booster.availableText.text = "$"
 		end
 	end
 end

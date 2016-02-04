@@ -112,22 +112,35 @@ function scene:create( event )
 
     seeds = levelConfig.seeds
 
-    glow = display.newImageRect( globalSceneGroup, "planting-glow.png", 45, 25 )
+    glow = display.newImageRect( globalSceneGroup, "planting-glow.png", 50, 25 )
     glow.x, glow.y = -50, -50
 
-    local yHole = 150
-    local xHole = 40
+    local yHole = 170
+    local xHole = 60
+
+    local yHoleSpacing
+
+    if(levelConfig.numberHoles >= 10) then
+        yHoleSpacing = 75
+    elseif(levelConfig.numberHoles >= 7) then
+        yHoleSpacing = 90
+        yHole = 180
+    else
+        yHoleSpacing = 90
+        yHole = 200
+    end
 
     for i=1, levelConfig.numberHoles do
     
         local hole = display.newSprite(sheet_hole, sequences_hole)
+        hole:scale(1.2,1.2)
         hole.x = xHole 
         hole.y = yHole
 
         xHole = xHole + 100
 
         if i % 3 == 0 then
-            yHole = yHole + 55
+            yHole = yHole + yHoleSpacing
             xHole = xHole - 300
         end
 

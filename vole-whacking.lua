@@ -495,8 +495,19 @@ function scene:create( event )
 
     groundBoosters = levelConfig.groundBoosters
 
-    local yHole = 400
+    local yHole = 390
     local xHole = 40
+
+    local yHoleSpacing
+
+    if(levelConfig.numberHoles >= 10) then
+        yHoleSpacing = 65
+    elseif(levelConfig.numberHoles >= 7) then
+        yHoleSpacing = 90
+    else
+        yHoleSpacing = 110
+        yHole = 350
+    end
 
     --create vole hills on display
     for i=1, levelConfig.numberHoles do
@@ -517,7 +528,7 @@ function scene:create( event )
         xHole = xHole + 75
 
         if i % 3 == 0 then
-            yHole = yHole -55
+            yHole = yHole - yHoleSpacing
             xHole = xHole - (225)
         end
 
@@ -1037,6 +1048,8 @@ function zapAllTouched(event)
                     voleZapped(vole)
                 end
 
+                increaseScore(levelConfig.numberHoles)
+
                 if(zap ~= nil) then
                     timer.performWithDelay(3000, function() 
                                                 for k, v in pairs(zaps) do
@@ -1093,6 +1106,8 @@ function zapRowTouched(event)
 
                     voleZapped(vole)
                 end
+
+                increaseScore(3)
 
                 timer.performWithDelay(3000, function() 
                                                 destroySelf(zap)

@@ -102,24 +102,54 @@ function scene:create( event )
 
 
     local yHole = 150
-    local xHole = 40
+    local xHole = 25
+    local holeWidth
+    local holeHeight
+    local yHoleSpacing
+    local xHoleSpacing
+    local veggieScaling
+
+    if(levelConfig.numberHoles >= 10) then
+        yHoleSpacing = 80
+        xHoleSpacing = 100
+        yHole = 150
+        holeWidth = 70
+        holeHeight = 35
+        veggieScaling = 1.1
+    elseif(levelConfig.numberHoles >= 7) then
+        yHoleSpacing = 100
+        xHoleSpacing = 100
+        yHole = 180
+        holeWidth = 70
+        holeHeight = 35
+        veggieScaling = 1.2
+    else
+        yHoleSpacing = 90
+        xHoleSpacing = 100
+        yHole = 200
+        holeWidth = 70
+        holeHeight = 35
+        veggieScaling = 1.2
+    end
 
     for i=1, levelConfig.numberHoles do
     
         local veggie = display.newSprite(sceneGroup, sheet_veggie, sequences_veggies)
-        local hole = display.newImageRect( sceneGroup, "hole-bottom.png", 40, 20 )
+        local hole = display.newImageRect( sceneGroup, "hole-bottom.png", holeWidth, holeHeight)
 
         hole.x = xHole 
         hole.y = yHole
 
-        veggie.x = xHole + 10
-        veggie.y = yHole - 7
+        veggie:scale(veggieScaling, veggieScaling)
+        veggie.x = hole.contentBounds.xMin + (hole.width / 2)
+        veggie.y = hole.contentBounds.yMin
+        veggie.anchorX, veggie.anchorY = 0.5,0.5
 
-        xHole = xHole + 100
+        xHole = xHole + xHoleSpacing
 
         if i % 3 == 0 then
-            yHole = yHole + 55
-            xHole = xHole - 300
+            yHole = yHole + yHoleSpacing
+            xHole = xHole - (xHoleSpacing * 3)
         end
 
         veggie.completed = false
