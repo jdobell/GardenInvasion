@@ -327,6 +327,10 @@ function _M:createBuyFertilizerDialog()
 
     fertilizerModalGroup:insert(fertilizerScrollView)
 
+    local creditsText = display.newText(fertilizerModalGroup, "", fertilizerModal.contentBounds.xMin + 10, fertilizerModal.contentBounds.yMin + 25, globals.font, 14)
+    creditsText.credit = true
+	creditsText.anchorX = 0
+
 	closeFertilizerButton = widget.newButton
 	{
 	    width = 30,
@@ -351,6 +355,7 @@ function _M:createBuyFertilizerDialog()
 	local fertilizerScoopGroup = display.newGroup()
 	local scoopButton = widget.newButton(buttonConfig)
 	scoopButton.amount = 1
+	scoopButton.type = "scoop"
 	fertilizerScoopGroup:insert(scoopButton)
 	commonGroup:insert(fertilizerScoopGroup)
 
@@ -375,6 +380,7 @@ function _M:createBuyFertilizerDialog()
 	local fertilizerBucketGroup = display.newGroup()
 	local bucketButton = widget.newButton(buttonConfig)
 	bucketButton.amount = 5
+	bucketButton.type = "bucket"
 	fertilizerBucketGroup:insert(bucketButton)
 	commonGroup:insert(fertilizerBucketGroup)
 
@@ -399,6 +405,7 @@ function _M:createBuyFertilizerDialog()
 	local fertilizerBagGroup = display.newGroup()
 	local bagButton = widget.newButton(buttonConfig)
 	bagButton.amount = 10
+	bagButton.type = "bag"
 	fertilizerBagGroup:insert(bagButton)
 	commonGroup:insert(fertilizerBagGroup)
 
@@ -454,6 +461,10 @@ function _M:createBuyInAppPurchaseDialog()
 	buyIAPText.anchorX = 0.5
 
     IAPModalGroup:insert(IAPScrollView)
+
+    local creditsText = display.newText(IAPModalGroup, "", IAPModal.contentBounds.xMin + 10, IAPModal.contentBounds.yMin + 25, globals.font, 14)
+	creditsText.credit = true
+	creditsText.anchorX = 0
 
 	closeIAPButton = widget.newButton
 	{
@@ -515,12 +526,33 @@ function _M:toggleModalVisible(visible, modal)
 	if(modal == "fertilizer" or modal == nil) then
 		for i=1,fertilizerModalGroup.numChildren do
 	    	fertilizerModalGroup[i].alpha = alpha
+
+	    	if(fertilizerModalGroup[i].credit ~= nil) then
+				local globalData = file.loadGlobalData()
+	    		if(globalData.credits == nil) then
+	    			globalData.credits = 0
+	    			file.saveGlobalData(globalData)
+	    		end
+
+	    		fertilizerModalGroup[i].text = _s("Credits:")..globalData.credits
+	    	end
 		end
 	end
 
 	if(modal == "IAP" or modal == nil) then
 		for i=1,IAPModalGroup.numChildren do
 	    	IAPModalGroup[i].alpha = alpha
+
+			if(IAPModalGroup[i].credit ~= nil) then
+		    	local globalData = file.loadGlobalData()
+
+				if(globalData.credits == nil) then
+		    		globalData.credits = 0
+		    		file.saveGlobalData(globalData)
+		   		end
+
+	    		IAPModalGroup[i].text = _s("Credits:")..globalData.credits
+	    	end
 		end
 	end
 end
@@ -887,7 +919,25 @@ function _M.buyFertilizer(event)
         local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
         if dx > 5 then
         	fertilizerScrollView:takeFocus(event)
-       end
+        end
+    elseif(event.phase == "ended") then
+
+	    local button = event.target
+
+      	--button.type for store
+       	local amount = button.amount
+
+       	--initiate store
+       	local data = file.loadGlobalData()
+
+       	if(data.credits == nil) then
+       		data.credits = 0
+       	end
+
+       	data.credits = data.credits + amount
+       	file.saveGlobalData(data)
+
+       	_M:toggleModalVisible(true, "fertilizer")
     end
 end
 
@@ -896,7 +946,8 @@ function _M.buyIAP(event)
         local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
         if dx > 5 then
         	IAPScrollView:takeFocus(event)
-       end
+        else
+        end
     end
 end
 

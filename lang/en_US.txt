@@ -45,3 +45,4 @@ Seed to Plant: = Seed to Plant:
 Available Harvest Message = The better you do protecting your patch, the more harvest opportunity you will have
 BoostersNotUnlocked = Power Ups have not been unlocked yet. Keep playing!
 Maximum booster reached = Maximum booster reached
+Credits: = Credits:
