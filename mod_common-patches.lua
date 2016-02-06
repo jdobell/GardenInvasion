@@ -477,7 +477,7 @@ function _M:createBuyInAppPurchaseDialog()
     closeIAPButton.x, closeIAPButton.y = IAPModal.contentBounds.xMax -18, IAPModal.contentBounds.yMin - 15
     IAPModalGroup:insert(closeIAPButton)
 
-    local buttonConfig = {
+    local conf = {
     	width = 55,
 	    height = 60,
 	    defaultFile = "IAP-icon.png",
@@ -487,7 +487,20 @@ function _M:createBuyInAppPurchaseDialog()
 	    left = 18
 	}
 
-	
+	local purchaseItems = {}
+	purchaseItems["slow"] = {sheet = boosterSpriteSheets["slow"]}
+
+	for k,v in pairs(purchaseItems) do
+		
+		v.width = 55
+		v.height = 60
+		v.onEvent = _M.buyIAP
+		font = globals.font
+		left = 18
+
+		local button = widget.newButton(v)
+		IAPModalGroup:insert(button)
+	end
 end
 
 function _M:toFront()

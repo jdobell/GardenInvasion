@@ -162,17 +162,25 @@ local cats = {}
 
 local catSheetOptions =
 {
-    width = 14,
-    height = 22,
-    numFrames = 2
+    width = 405,
+    height = 315,
+    numFrames = 9
 }
 
 local sequences_cat = {
     -- consecutive frames sequence
     {
-        name = "walkingCat",
+        name = "standUpCat",
         start = 1,
-        count = 2,
+        count = 5,
+        time = 1000,
+        loopCount = 1,
+        loopDirection = "forward"
+    },
+    {
+        name = "walkingCat",
+        start = 6,
+        count = 3,
         time = 500,
         loopCount = 0,
         loopDirection = "forward"
@@ -1233,12 +1241,26 @@ function removeVoleClickable(obj)
             cat = cats[maxCats]
             numberCats = numberCats - 1
             table.remove(cats, maxCats)
+            cat.xNew, yNew = obj.x, obj.y
+            cat:addEventListener( "sprite", catPlayListener )
             cat:play()
-            transition.to(cat, {time=1000, x=obj.x, y=obj.y, onComplete=catGetVole})
+            
         else
             healthReduce()
             resetStreak()
         end
+    end
+end
+
+function catPlayListener(event)
+
+    local obj = event.target
+
+    if(event.phase == "ended" and obj.sequence == "standUpCat") then
+
+        obj:setSequence( "walkingCat" )
+        obj:play()
+        transition.to(cat, {time=1000, x=obj.xNew, y=obj.yNew, onComplete=catGetVole})
     end
 end
 
@@ -1407,6 +1429,7 @@ function catStreakAchieved()
     local cat = display.newSprite(sheet_cat, sequences_cat)
     cat.x = 10
     cat.y = 270 + (numberCats * 10)
+    cat:scale(.25,.25)
 
     table.insert(cats,cat)
 
