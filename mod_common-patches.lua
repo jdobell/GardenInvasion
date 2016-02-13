@@ -8,6 +8,9 @@ local commonGroup
 local modalGroup
 local modal
 local navigateModalGroup
+local confirmIAPModalGroup
+local confirmIAPText
+local currentPurchase
 local fertilizerModalGroup
 local levelText
 local voleChit
@@ -101,7 +104,6 @@ function _M.new(sceneGroup, worldNumber)
 	local navigateModal = display.newImageRect(navigateModalGroup, "navigate-patches.png", 200, 300)
 	navigateModal.x, navigateModal.y = display.contentCenterX, display.contentCenterY
 	navigateModal.anchorX, navigateModal.anchorY = 0.5, 0.5
-	navigateModalGroup:insert( navigateModal )
 
     navigateModalGroup:insert(navigateScrollView)
 
@@ -176,6 +178,52 @@ function _M.new(sceneGroup, worldNumber)
 	
 
 ---------------------------------------------------------Navigation/Fertilizer dialog code end ---------------------------------------------------------
+
+	confirmIAPModalGroup = display.newGroup()
+
+	local confirmIAPModalBackground = display.newImageRect(confirmIAPModalGroup, "transparent-background.png", 380, 570)
+	confirmIAPModalBackground.x, confirmIAPModalBackground.y = -23, -44
+	confirmIAPModalBackground:addEventListener( "touch", _M.modalTouched )
+	confirmIAPModalBackground:addEventListener( "tap", _M.modalTouched )
+
+	local confirmIAPModal = display.newImageRect(confirmIAPModalGroup, "buy-fertilizer-background.png", 150, 150)
+	confirmIAPModal.x, confirmIAPModal.y = display.contentCenterX, display.contentCenterY
+	confirmIAPModal.anchorX, confirmIAPModal.anchorY = 0.5, 1
+
+	closeConfirmModalButton = widget.newButton
+	{
+	    width = 30,
+	    height = 30,
+	    defaultFile = "close-button.png",
+	    overFile = "close-button-pressed.png",
+	    onEvent = _M.closeModal,
+	}
+    closeConfirmModalButton.x, closeConfirmModalButton.y = confirmIAPModal.contentBounds.xMax -18, confirmIAPModal.contentBounds.yMin - 15
+    confirmIAPModalGroup:insert(closeConfirmModalButton)
+
+    --to only close this modal
+    closeConfirmModalButton.modal = "confirmIAP"
+
+	local confirmIAPTitle = display.newText(confirmIAPModalGroup, _s("Confirm IAP Title"), confirmIAPModal.contentBounds.xMin + confirmIAPModal.width / 2, confirmIAPModal.contentBounds.yMin + 10, globals.font, 14)
+	confirmIAPTitle.anchorX = 0.5
+
+	confirmIAPText = display.newText(confirmIAPModalGroup, "", confirmIAPModal.contentBounds.xMin + 10, confirmIAPModal.contentBounds.yMin + 35, 130, 90, globals.font, 12)
+
+	local confirmIAPButton = widget.newButton
+	{
+	    width = 70,
+	    height = 30,
+	    defaultFile = "button-medium.png",
+	    overFile = "button-medium-pressed.png",
+	    onEvent = _M.confirmIAPPurchase,
+	    label = _s("Confirm"),
+	    labelColor = {default = {0,0,0}, over = {1,1,1}},
+	    font = globals.font
+	}
+
+	confirmIAPButton.x, confirmIAPButton.y = confirmIAPModal.contentBounds.xMax - 10, confirmIAPModal.contentBounds.yMax - 10
+	confirmIAPButton.anchorX, confirmIAPButton.anchorY = 1,1
+	confirmIAPModalGroup:insert(confirmIAPButton)
 
 	modalGroup = display.newGroup()
 
@@ -278,6 +326,8 @@ function _M.new(sceneGroup, worldNumber)
 	commonGroup:insert(modalGroup)
 	commonGroup:insert(navigateModalGroup)
 	commonGroup:insert(fertilizerModalGroup)
+	commonGroup:insert(IAPModalGroup)
+	commonGroup:insert(confirmIAPModalGroup)
 	 _M:toggleModalVisible(false)
 
 
@@ -477,35 +527,45 @@ function _M:createBuyInAppPurchaseDialog()
     closeIAPButton.x, closeIAPButton.y = IAPModal.contentBounds.xMax -18, IAPModal.contentBounds.yMin - 15
     IAPModalGroup:insert(closeIAPButton)
 
-    local conf = {
-    	width = 55,
-	    height = 60,
-	    defaultFile = "IAP-icon.png",
-	    overFile = "IAP-icon-over.png",
-	    onEvent = _M.buyIAP,
-	    font = globals.font,
-	    left = 18
-	}
-
 	local purchaseItems = {}
-	purchaseItems["slow"] = {sheet = boosterSpriteSheets["slow"]}
+	purchaseItems["slowDown"] = {sheet = boosterSpriteSheets["slowDown"], confirmText = "slowDownPurchase"}
+	purchaseItems["lives"] = {defaultFile = "lives-button.png", overFile = "lives-button-over.png", confirmText = "livesPurchase"}
+
+	local xStart = 15
 
 	for k,v in pairs(purchaseItems) do
-		
-		v.width = 55
+
+		v.width = 60
 		v.height = 60
 		v.onEvent = _M.buyIAP
-		font = globals.font
-		left = 18
+		v.font = globals.font
+		v.left = xStart
+
+		if(v.sheet ~= nil) then
+			v.defaultFrame = 1
+			v.overFrame = 2
+		end
 
 		local button = widget.newButton(v)
-		IAPModalGroup:insert(button)
+		button.anchorx = 0.5
+
+		button.confirmText = v.confirmText
+
+		if(v.sheet ~= nil) then
+			button.height = 60
+			button.width = 60
+		end
+
+		IAPScrollView:insert(button)
+
+		xStart = xStart + 80
 	end
 end
 
 function _M:toFront()
 	navigatePatchButton:toFront()
 	navigateModalGroup:toFront()
+	confirmIAPModalGroup:toFront()
 	buyFertilizerButton:toFront()
 	buyIAPButton:toFront()
 	livesLabel:toFront()
@@ -533,6 +593,12 @@ function _M:toggleModalVisible(visible, modal)
 	if(modal == "navigate" or modal == nil) then
 		for i=1,navigateModalGroup.numChildren do
 	    	navigateModalGroup[i].alpha = alpha
+		end
+	end
+
+	if(modal == "confirmIAP" or modal == nil) then
+		for i=1,confirmIAPModalGroup.numChildren do
+	    	confirmIAPModalGroup[i].alpha = alpha
 		end
 	end
 
@@ -832,7 +898,7 @@ end
 
 function _M.closeModal(event)
 	if(event.phase == "ended") then
-		_M:toggleModalVisible(false)
+		_M:toggleModalVisible(false, event.target.modal)
 	end
 end
 
@@ -959,9 +1025,20 @@ function _M.buyIAP(event)
         local dx = math.abs( event.x - event.xStart ) -- Get the y-transition of the touch-input
         if dx > 5 then
         	IAPScrollView:takeFocus(event)
-        else
         end
+    elseif event.phase == "ended" then
+
+    	currentPurchase = event.target
+
+		_M:toggleModalVisible(true, "confirmIAP")
+		confirmIAPModalGroup:toFront()
+print(event.target.confirmText)
+		confirmIAPText.text = _s(event.target.confirmText)
     end
+end
+
+function _M.confirmIAPPurchase(event)
+
 end
 
 function _M.checkLives()
