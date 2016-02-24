@@ -9,8 +9,8 @@ local modalGroup
 local modal
 local navigateModalGroup
 local confirmIAPModalGroup
+local confirmIAPButton
 local confirmIAPText
-local currentPurchase
 local fertilizerModalGroup
 local levelText
 local voleChit
@@ -209,7 +209,7 @@ function _M.new(sceneGroup, worldNumber)
 
 	confirmIAPText = display.newText(confirmIAPModalGroup, "", confirmIAPModal.contentBounds.xMin + 10, confirmIAPModal.contentBounds.yMin + 35, 130, 90, globals.font, 12)
 
-	local confirmIAPButton = widget.newButton
+	confirmIAPButton = widget.newButton
 	{
 	    width = 70,
 	    height = 30,
@@ -550,6 +550,7 @@ function _M:createBuyInAppPurchaseDialog()
 		button.anchorx = 0.5
 
 		button.confirmText = v.confirmText
+		button.selected = k
 
 		if(v.sheet ~= nil) then
 			button.height = 60
@@ -922,7 +923,7 @@ function _M.goToPatch(event)
        end
     elseif(event.phase == "ended") then
     	if(event.target.enabled) then
-    		_M.toggleModalVisible(false)
+    		_M:toggleModalVisible(false)
     		if(event.target.world ~= world) then
     			_M:cancelTimers()
     			composer.gotoScene( event.target.path)
@@ -1028,17 +1029,37 @@ function _M.buyIAP(event)
         end
     elseif event.phase == "ended" then
 
-    	currentPurchase = event.target
+    	confirmIAPButton.currentSelected = event.target
 
 		_M:toggleModalVisible(true, "confirmIAP")
 		confirmIAPModalGroup:toFront()
-print(event.target.confirmText)
 		confirmIAPText.text = _s(event.target.confirmText)
     end
 end
 
 function _M.confirmIAPPurchase(event)
 
+	if event.phase == "ended" then
+		local IAP = event.target.currentSelected.selected
+		local transactionComplete = false
+
+		if(IAP == "lives") then
+			local globalData = file.loadGlobalData()
+
+			globalData.lives = globals.maxLives
+			globalData.lastLifeGiven = os.time()
+			file.saveGlobalData(globalData)
+			_M.checkLives()
+			transactionComplete = true
+
+		elseif(IAP == "slowDown") then
+
+		end
+
+		if(transactionComplete) then
+			_M:toggleModalVisible(false, "confirmIAP")
+		end
+	end
 end
 
 function _M.checkLives()
