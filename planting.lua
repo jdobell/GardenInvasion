@@ -41,7 +41,7 @@ local bonusPerSecond = 10
 local conveyorSheetOptions =
 {
     width = 380,
-    height = 38,
+    height = 41.25,
     numFrames = 4
 }
 
@@ -49,7 +49,8 @@ local sequences_conveyor = {
     -- consecutive frames sequence
     {
         name = "conveyorMove",
-        frames = {4,3,2,1},
+        start = 1,
+        count = 4,
         time = 300,
         loopCount = 0,
         loopDirection = "reverse"
@@ -102,7 +103,7 @@ function scene:create( event )
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
-    sequences_conveyor[1].time = levelConfig.seedSpeed / 35
+    sequences_conveyor[1].time = levelConfig.seedSpeed / 36
 
     conveyor = display.newSprite( sheet_conveyor, sequences_conveyor)
     conveyor.x, conveyor.y = leftSide - 20, 100

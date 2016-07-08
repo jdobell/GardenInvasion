@@ -55,6 +55,15 @@ local slowSheetOptions =
 
 boosterSpriteSheets["slowDown"] = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
 
+local buttonSheetOptions =
+{
+    width = 70,
+    height = 26.5,
+    numFrames = 2
+}
+
+local buttonSheet = graphics.newImageSheet( "button-medium.png", buttonSheetOptions )
+
 ----------------------------Slow down sprite setup end-----------------------------
 
 function _M.new(sceneGroup, worldNumber)
@@ -70,12 +79,15 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 70,
 	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
+	    sheet = buttonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.navigatePatches,
 	    label = _s("Patches"),
 	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
+	    font = globals.font,
+	    fontSize = 13,
+	    emboss = true
 	}
 
 	navigatePatchButton.x, navigatePatchButton.y = display.contentWidth - display.screenOriginX - 5, display.screenOriginY + 5

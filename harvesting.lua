@@ -29,6 +29,7 @@ local streak = 0
 local levelConfig
 local gameEnded = false
 local gameOverCompleted = false
+local gameStarted = false
 local numberHolesCompleted = 0
 local holes = {}
 local basket
@@ -135,7 +136,7 @@ function scene:create( event )
     for i=1, levelConfig.numberHoles do
     
         local veggie = display.newSprite(sceneGroup, sheet_veggie, sequences_veggies)
-        local hole = display.newImageRect( sceneGroup, "hole-bottom.png", holeWidth, holeHeight)
+        local hole = display.newImageRect( sceneGroup, "hole.png", holeWidth, holeHeight)
 
         hole.x = xHole 
         hole.y = yHole
@@ -180,6 +181,7 @@ function scene:create( event )
                                         startingCountdown.text = countdown
                                         if(i == 0) then
                                             transition.fadeOut(startingCountdown, {time=3000})
+                                            gameStarted = true
                                         end
                                     end))
     end
@@ -335,58 +337,60 @@ end
 
 function veggieClicked(event)
 
-    local veggie = event.target
+    if(gameStarted) then
+        local veggie = event.target
 
-    if event.phase == "began" then
+        if event.phase == "began" then
 
-        display.getCurrentStage():setFocus( veggie )
-        veggie.isFocus = true
+            display.getCurrentStage():setFocus( veggie )
+            veggie.isFocus = true
 
-        touchStart = system.getTimer()
-    elseif veggie.isFocus then
-        if event.phase == "moved" and veggie.completed == false then
-            local dy = math.abs( event.y - event.yStart )
+            touchStart = system.getTimer()
+        elseif veggie.isFocus then
+            if event.phase == "moved" and veggie.completed == false then
+                local dy = math.abs( event.y - event.yStart )
 
-            if (dy > 10) then
-                touchEnd = system.getTimer()
+                if (dy > 10) then
+                    touchEnd = system.getTimer()
 
-                local touchTime = touchEnd - touchStart
-                print(touchTime)
+                    local touchTime = touchEnd - touchStart
+                    print(touchTime)
 
-                if(touchTime < globals.touchFast) then
-                    print("fast")
-                    veggie.completed = true
-                    veggieSlide(veggie, false)
-                elseif(touchTime >= globals.touchFast and touchTime <= globals.touchSlow) then
-                    print("good")
-                    veggie.completed = true
-                    veggieSlide(veggie, true)
-                elseif(touchTime > globals.touchSlow) then
-                    print("slow")
-
-                    if(veggie.slow == 3) then
+                    if(touchTime < globals.touchFast) then
+                        print("fast")
+                        veggie.completed = true
+                        veggieSlide(veggie, false)
+                    elseif(touchTime >= globals.touchFast and touchTime <= globals.touchSlow) then
+                        print("good")
                         veggie.completed = true
                         veggieSlide(veggie, true)
-                    else
-                        oscillate( 10, 2, 'x', 300 ) (veggie)
-                        transition.to(veggie, {time=300, y=veggie.y - 3})
-                        veggie.slow = veggie.slow + 1
+                    elseif(touchTime > globals.touchSlow) then
+                        print("slow")
+
+                        if(veggie.slow == 3) then
+                            veggie.completed = true
+                            veggieSlide(veggie, true)
+                        else
+                            oscillate( 10, 2, 'x', 300 ) (veggie)
+                            transition.to(veggie, {time=300, y=veggie.y - 3})
+                            veggie.slow = veggie.slow + 1
+                        end
                     end
+
+                    display.getCurrentStage():setFocus( nil )
+                    veggie.isFocus = false
                 end
+
+                --transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
+            elseif event.phase == "ended" or event.phase == "cancelled" then
 
                 display.getCurrentStage():setFocus( nil )
                 veggie.isFocus = false
             end
-
-            --transition.to(seed, {time = 500, y=holes[currentHole].y+10, onComplete=seedMissed})
-        elseif event.phase == "ended" or event.phase == "cancelled" then
-
-            display.getCurrentStage():setFocus( nil )
-            veggie.isFocus = false
         end
-    end
 
-    return true
+        return true
+    end
 end
 
 function veggieSlide(veggie, success)

@@ -65,8 +65,8 @@ local data
 local holes = {}
 local voleSheetOptions =
 {
-    width = 25,
-    height = 20,
+    width = 30,
+    height = 28,
     numFrames = 2
 }
 
@@ -523,7 +523,7 @@ function scene:create( event )
         local holeGroup = display.newGroup()
         local hole = {}
 
-        local holeBottom = display.newImageRect("hole-bottom.png", 60, 29)
+        local holeBottom = display.newImageRect("hole.png", 60, 29)
         holeBottom.x = xHole 
         holeBottom.y = yHole
 
@@ -1144,8 +1144,8 @@ function voleZapped(vole)
         vole.isClickable = false
         vole.transition = "up"
         vole.hit = false
-        vole:setFrame(1)
-        transition.to(vole, {time=voleSpeed, y=holes[vole.voleNumber].bottom.y - 17})
+        vole:setFrame(2)
+        transition.to(vole, {time=voleSpeed, y=holes[vole.voleNumber].bottom.y - 30})
     end
 
 end
@@ -1219,7 +1219,7 @@ function startVoleMove(voleNumber)
     vole.isMoving = true
     vole.transition = "up"
     vole.hit = false
-    transition.to(vole, {time=voleSpeed, y=vole.y - 17, onComplete=startVoleReturn, tag="voleUp"..voleNumber})
+    transition.to(vole, {time=voleSpeed, y=vole.y - 30, onComplete=startVoleReturn, tag="voleUp"..voleNumber})
 end
 
 function startVoleReturn(obj)
