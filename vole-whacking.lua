@@ -65,8 +65,8 @@ local data
 local holes = {}
 local voleSheetOptions =
 {
-    width = 30,
-    height = 28,
+    width = 40,
+    height = 37,
     numFrames = 2
 }
 
@@ -523,13 +523,13 @@ function scene:create( event )
         local holeGroup = display.newGroup()
         local hole = {}
 
-        local holeBottom = display.newImageRect("hole.png", 60, 29)
+        local holeBottom = display.newImageRect("hole.png", 70, 34)
         holeBottom.x = xHole 
         holeBottom.y = yHole
 
         local vole = display.newSprite(sheet_vole, sequences_touchedVole)
-        vole.x = xHole + 17
-        vole.y = yHole + 3
+        vole.x = xHole + 14
+        vole.y = yHole - 3
         vole.isClickable = false
         vole.voleNumber = i
 
@@ -1228,7 +1228,7 @@ function startVoleReturn(obj)
     
     local holeBottom = holes[obj.voleNumber].bottom
     
-    transition.to(obj, {time=voleSpeed, y=holeBottom.y + 3, onComplete=removeVoleClickable, tag="voleDown"..obj.voleNumber})
+    transition.to(obj, {time=voleSpeed, y=holeBottom.y - 4, onComplete=removeVoleClickable, tag="voleDown"..obj.voleNumber})
 end
 
 function removeVoleClickable(obj)
