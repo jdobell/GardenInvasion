@@ -268,7 +268,7 @@ function gameOver(lost)
             file.loseLife()
         else
             local data = file.loadGlobalData()
-            print("planting", data)
+
             if(data.maxLevel == nil or levelConfig.level > data.maxLevel) then
                 data.maxLevel = levelConfig.level
                 file.saveGlobalData(data)
@@ -328,7 +328,9 @@ function dropRandomSeed()
     seed.collision = seedCollision
     seed:addEventListener( "collision", seed )
 
-    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete=destroySelf})
+    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete= function(seed) if(gameEnded == false) then 
+                                                                                                destroySelf(seed) 
+                                                                                        end })
 end
 
 function seedClicked(event)

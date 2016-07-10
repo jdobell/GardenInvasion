@@ -12,6 +12,7 @@ isIPad = false,
 isTall = false,
 isSimulator = false,
 font = native.systemFont,
+boldFont = native.systemFontBold,
 levelDataFile = "garden_invasion_levels",
 globalDataFile = "garden_invasion_globals",
 --for testing purposed only -- change the world that is accessible by increasing number

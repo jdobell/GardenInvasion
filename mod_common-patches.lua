@@ -55,6 +55,9 @@ local slowSheetOptions =
 
 boosterSpriteSheets["slowDown"] = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
 
+
+----------------------------Button sprite setup----------------------------------------
+
 local buttonSheetOptions =
 {
     width = 70,
@@ -63,6 +66,21 @@ local buttonSheetOptions =
 }
 
 local buttonSheet = graphics.newImageSheet( "button-medium.png", buttonSheetOptions )
+
+----------------------------Button sprite setup end----------------------------------------
+
+----------------------------Close button sprite setup----------------------------------------
+
+local closeButtonSheetOptions =
+{
+    width = 40,
+    height = 42.5,
+    numFrames = 2
+}
+
+local closeButtonSheet = graphics.newImageSheet( "button-close.png", closeButtonSheetOptions )
+
+----------------------------Close button sprite setup end----------------------------------------
 
 ----------------------------Slow down sprite setup end-----------------------------
 
@@ -85,7 +103,7 @@ function _M.new(sceneGroup, worldNumber)
 	    onEvent = _M.navigatePatches,
 	    label = _s("Patches"),
 	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font,
+	    font = globals.boldFont,
 	    fontSize = 13,
 	    emboss = true
 	}
@@ -123,8 +141,9 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 30,
 	    height = 30,
-	    defaultFile = "close-button.png",
-	    overFile = "close-button-pressed.png",
+		sheet = closeButtonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.closeModal,
 	    font = globals.font
 	}
@@ -206,8 +225,9 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 30,
 	    height = 30,
-	    defaultFile = "close-button.png",
-	    overFile = "close-button-pressed.png",
+	    sheet = closeButtonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.closeModal,
 	}
     closeConfirmModalButton.x, closeConfirmModalButton.y = confirmIAPModal.contentBounds.xMax -18, confirmIAPModal.contentBounds.yMin - 15
@@ -225,12 +245,14 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 70,
 	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
+	    sheet = buttonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.confirmIAPPurchase,
 	    label = _s("Confirm"),
 	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
+	    font = globals.boldFont,
+	    emboss = true
 	}
 
 	confirmIAPButton.x, confirmIAPButton.y = confirmIAPModal.contentBounds.xMax - 10, confirmIAPModal.contentBounds.yMax - 10
@@ -313,12 +335,14 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 70,
 	    height = 30,
-	    defaultFile = "button-medium.png",
-	    overFile = "button-medium-pressed.png",
+	   	sheet = buttonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.goToLevel,
 	    label = _s("Play"),
 	    labelColor = {default = {0,0,0}, over = {1,1,1}},
-	    font = globals.font
+	    font = globals.boldFont,
+	    emboss = true
 	}
 
 	playButton.x, playButton.y = 220, 420
@@ -328,8 +352,9 @@ function _M.new(sceneGroup, worldNumber)
 	{
 	    width = 30,
 	    height = 30,
-	    defaultFile = "close-button.png",
-	    overFile = "close-button-pressed.png",
+	    sheet = closeButtonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.closeModal,
 	}
     closeModalButton.x, closeModalButton.y = modal.contentBounds.xMax -18, modal.contentBounds.yMin - 15
@@ -397,8 +422,9 @@ function _M:createBuyFertilizerDialog()
 	{
 	    width = 30,
 	    height = 30,
-	    defaultFile = "close-button.png",
-	    overFile = "close-button-pressed.png",
+	    sheet = closeButtonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.closeModal,
 	}
     closeFertilizerButton.x, closeFertilizerButton.y = fertilizerModal.contentBounds.xMax -18, fertilizerModal.contentBounds.yMin - 15
@@ -532,8 +558,9 @@ function _M:createBuyInAppPurchaseDialog()
 	{
 	    width = 30,
 	    height = 30,
-	    defaultFile = "close-button.png",
-	    overFile = "close-button-pressed.png",
+	    sheet = closeButtonSheet,
+	    defaultFrame = 1,
+	    overFrame = 2,
 	    onEvent = _M.closeModal,
 	}
     closeIAPButton.x, closeIAPButton.y = IAPModal.contentBounds.xMax -18, IAPModal.contentBounds.yMin - 15

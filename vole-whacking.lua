@@ -350,23 +350,23 @@ local sheet_zap = graphics.newImageSheet( "zap.png", zapSheetOptions )
 local slowSheetOptions =
 {
     width = 100,
-    height = 100,
-    numFrames = 2
+    height = 95,
+    numFrames = 4
 }
 
 local sequences_slow = {
     -- consecutive frames sequence
     {
         name = "slow",
-        start = 1,
-        count = 2,
+        start = 3,
+        count = 1,
         time = 100,
         loopCount = 0,
         loopDirection = "forward"
     }
 }
 
-local sheet_slow = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
+local sheet_slow = graphics.newImageSheet( "booster-icons.png", slowSheetOptions )
 
 ----------------------------Slow down sprite setup end-----------------------------
 
@@ -374,23 +374,23 @@ local sheet_slow = graphics.newImageSheet( "slow-down.png", slowSheetOptions )
 local fastSheetOptions =
 {
     width = 100,
-    height = 100,
-    numFrames = 2
+    height = 95,
+    numFrames = 4
 }
 
 local sequences_fast = {
     -- consecutive frames sequence
     {
         name = "fast",
-        start = 1,
-        count = 2,
+        start = 4,
+        count = 1,
         time = 100,
         loopCount = 0,
         loopDirection = "forward"
     }
 }
 
-local sheet_fast = graphics.newImageSheet( "speed-up.png", fastSheetOptions )
+local sheet_fast = graphics.newImageSheet( "booster-icons.png", fastSheetOptions )
 
 ----------------------------Speed up sprite setup end-----------------------------
 
@@ -398,8 +398,8 @@ local sheet_fast = graphics.newImageSheet( "speed-up.png", fastSheetOptions )
 local zapAllSheetOptions =
 {
     width = 100,
-    height = 100,
-    numFrames = 2
+    height = 95,
+    numFrames = 4
 }
 
 local sequences_zapAll = {
@@ -407,14 +407,14 @@ local sequences_zapAll = {
     {
         name = "zapAll",
         start = 1,
-        count = 2,
+        count = 1,
         time = 100,
         loopCount = 0,
         loopDirection = "forward"
     }
 }
 
-local sheet_zapAll = graphics.newImageSheet( "zap-all.png", zapAllSheetOptions )
+local sheet_zapAll = graphics.newImageSheet( "booster-icons.png", zapAllSheetOptions )
 
 ----------------------------Zap All sprite setup end-----------------------------
 
@@ -422,23 +422,23 @@ local sheet_zapAll = graphics.newImageSheet( "zap-all.png", zapAllSheetOptions )
 local zapRowSheetOptions =
 {
     width = 100,
-    height = 100,
-    numFrames = 2
+    height = 95,
+    numFrames = 4
 }
 
 local sequences_zapRow = {
     -- consecutive frames sequence
     {
         name = "zapRow",
-        start = 1,
-        count = 2,
+        start = 2,
+        count = 1,
         time = 100,
         loopCount = 0,
         loopDirection = "forward"
     }
 }
 
-local sheet_zapRow = graphics.newImageSheet( "zap-row.png", zapRowSheetOptions )
+local sheet_zapRow = graphics.newImageSheet( "booster-icons.png", zapRowSheetOptions )
 
 ----------------------------Zap Row sprite setup end-----------------------------
 
@@ -1004,7 +1004,7 @@ function startGroundBoosterMove(voleNumber)
         boosterObject:addEventListener("touch", slowDownTouched)
     end
 
-    boosterObject.x, boosterObject.y = vole.x, vole.y
+    boosterObject.x, boosterObject.y = vole.x + 10, vole.y
     boosterObject.voleNumber = voleNumber
     boosterObject.transition = "up"
 
@@ -1232,22 +1232,24 @@ function startVoleReturn(obj)
 end
 
 function removeVoleClickable(obj)
-    obj:setFrame(1)
-    obj.isClickable = false
-    obj.isMoving = false
-    if(obj.hit ~= true and time > 0) then
-        local maxCats = table.maxn(cats)
-        if (maxCats > 0) then
-            cat = cats[maxCats]
-            numberCats = numberCats - 1
-            table.remove(cats, maxCats)
-            cat.xNew, yNew = obj.x, obj.y
-            cat:addEventListener( "sprite", catPlayListener )
-            cat:play()
-            
-        else
-            healthReduce()
-            resetStreak()
+    if(obj ~= nil and gameEnded == false) then
+        obj:setFrame(1)
+        obj.isClickable = false
+        obj.isMoving = false
+        if(obj.hit ~= true and time > 0) then
+            local maxCats = table.maxn(cats)
+            if (maxCats > 0) then
+                cat = cats[maxCats]
+                numberCats = numberCats - 1
+                table.remove(cats, maxCats)
+                cat.xNew, yNew = obj.x, obj.y
+                cat:addEventListener( "sprite", catPlayListener )
+                cat:play()
+                
+            else
+                healthReduce()
+                resetStreak()
+            end
         end
     end
 end
@@ -1387,7 +1389,9 @@ function dogGetDeer(dog, deer)
 end
 
 function destroySelf(obj)
-    obj:removeSelf()
+    if(obj ~= nil and gameEnded == false) then
+        obj:removeSelf()
+    end
 end
 
 function increaseStreak()
