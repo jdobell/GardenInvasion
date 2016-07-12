@@ -252,6 +252,7 @@ function _M.new(sceneGroup, worldNumber)
 	    label = _s("Confirm"),
 	    labelColor = {default = {0,0,0}, over = {1,1,1}},
 	    font = globals.boldFont,
+	    fontSize= 13,
 	    emboss = true
 	}
 

@@ -265,21 +265,21 @@ local sheet_dog = graphics.newImageSheet( "dog.png", dogSheetOptions )
 
 ----------------------------Vegetable sprite setup --------------------------------
 
-local numberVeggies = 24
+local numberVeggies = 12
 local veggies = {}
 
 local veggieSheetOptions =
 {
-    width = 20,
-    height = 20,
-    numFrames = 3
+    width = 25,
+    height = 65,
+    numFrames = 6
 }
 
 local sequences_veggies = {
     -- consecutive frames sequence
     {
         name = "revive",
-        start = 1,
+        start = 5,
         count = 1,
         time = 100,
         loopCount = 1,
@@ -287,7 +287,7 @@ local sequences_veggies = {
     },
     {
         name = "wilt",
-        start = 2,
+        start = 6,
         count = 1,
         time = 100,
         loopCount = 1,
@@ -558,8 +558,8 @@ function scene:create( event )
     local veggieGroup = display.newGroup()
     globalSceneGroup:insert(veggieGroup)
 
-    local veggieX = rightSide - 60
-    local veggieY = 410
+    local veggieX = rightSide - 50
+    local veggieY = 380
 
     for i=1, numberVeggies do
 
@@ -567,11 +567,11 @@ function scene:create( event )
         veggie.x = veggieX
         veggie.y = veggieY
 
-        veggieX = veggieX + 20
+        veggieX = veggieX + 25
 
-        if i % 3 == 0 then
-            veggieY = veggieY - 30
-            veggieX = veggieX - 60
+        if i % 2 == 0 then
+            veggieY = veggieY - 40
+            veggieX = veggieX - 50
         end
 
         veggieGroup:insert(veggie)
@@ -846,26 +846,16 @@ function reviveVeggies()
 
     if(health < maxLives) then
         wiltedIndex = wiltedIndex + veggiesAffectedPerChange
-
-        for i = math.floor((health - 1) * veggiesAffectedPerChange), math.ceil(wiltedIndex) do
-            if(i > 0) then
-                veggies[i]:setSequence("revive")
-                veggies[i]:play()
-            end
-        end
+        veggies[math.floor(wiltedIndex)]:setSequence("revive")
     end
 end
 
 function wiltVeggies()
-    if(health > 0) then
-      for i = math.floor(health * veggiesAffectedPerChange), math.ceil(wiltedIndex) do
-            if(i > 0) then
-                veggies[i]:setSequence("wilt")
-                veggies[i]:play()
-            end
-        end
+
         wiltedIndex = wiltedIndex - veggiesAffectedPerChange
-    end
+        ----the plus .01 is so that is doesn't wilt whole numbers
+        veggies[math.ceil(wiltedIndex + .01)]:setSequence("wilt")
+
 end
 
 function animalHit(creature, animal)
