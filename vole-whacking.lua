@@ -844,9 +844,15 @@ end
 
 function reviveVeggies()
 
-    if(health < maxLives) then
+    if(health <= maxLives) then
+        
         wiltedIndex = wiltedIndex + veggiesAffectedPerChange
+        if(wiltedIndex > maxLives) then
+            wiltedIndex = maxLives
+        end
+
         veggies[math.floor(wiltedIndex)]:setSequence("revive")
+        
     end
 end
 
@@ -861,8 +867,8 @@ end
 function animalHit(creature, animal)
     if(animal == "vole") then
         local gas = display.newImageRect('gas.png', 20, 20)
-        gas.x = creature.x
-        gas.y = creature.y
+        gas.x = creature.x + 7
+        gas.y = creature.y + 4
         gas.alpha = 0
         sceneGroup:insert(gas)
         transition.fadeIn(gas, {time=50, onComplete= function(gas) timer.performWithDelay(transition.fadeOut(gas, {time=500}), {time=500})end})
@@ -976,7 +982,6 @@ function startGroundBoosterMove(voleNumber)
         boosterObject:scale(.25,.25)
         boosterObject.boosterType = "zapAll"
         boosterObject:addEventListener("touch", zapAllTouched)
-        print(boosterObject)
     elseif(groundBoosters[booster] == "zapRow") then
         boosterObject = display.newSprite(globalSceneGroup, sheet_zapRow, sequences_zapRow)
         boosterObject:scale(.25,.25)
@@ -1158,14 +1163,15 @@ function voleZappedComplete(voleNumber)
             if(done) then
                 v.transition = "down"
                 local holeBottom = holes[v.voleNumber].bottom
-                transition.to(v, {time=voleSpeed, y=holeBottom.y + 3, onComplete=   function() 
+                transition.to(v, {time=voleSpeed, y=holeBottom.y - 4, onComplete=   function() 
                                                                                         v.isMoving = false 
                                                                                         if(volesPaused == true) then
                                                                                             timer.resume(voleTimer)
                                                                                             volesPaused = false
                                                                                         end
+                                                                                        v:setFrame(1)
                                                                                     end})
-                v:setFrame(1)
+                
                 v.isClickable = false
 
                 zappedVoles[k] = nil
