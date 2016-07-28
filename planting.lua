@@ -315,8 +315,8 @@ function dropRandomSeed()
 
     local seedNumber = math.random(1, #seeds)
 
-    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 25, 25)
-    seed.x, seed.y = display.screenOriginX - 40, conveyor.contentBounds.yMin
+    local seed = display.newImageRect( globalSceneGroup, seeds[seedNumber]..".png", 40, 40)
+    seed.x, seed.y = display.screenOriginX - 80, conveyor.contentBounds.yMin
     seed.anchorY = 1
     seed.seed = seeds[seedNumber]
 
@@ -326,11 +326,11 @@ function dropRandomSeed()
 
     seed:addEventListener("touch", seedClicked)
     seed.collision = seedCollision
-    seed:addEventListener( "collision", seed )
+    seed:addEventListener( "collision")
 
-    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete= function(seed) if(gameEnded == false) then 
-                                                                                                destroySelf(seed) 
-                                                                                        end })
+    transition.to(seed, {time=levelConfig.seedSpeed, x= 400, onComplete= function(seed) if(gameEnded == false) then
+                                                                                                destroySelf(seed)
+                                                                                        end end})
 end
 
 function seedClicked(event)

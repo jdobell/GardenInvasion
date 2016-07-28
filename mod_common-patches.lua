@@ -457,8 +457,8 @@ function _M:createBuyFertilizerDialog()
 	fertilizerScrollView:insert(fertilizerScoopGroup)
 
 	buttonConfig = {
-    	width = 55,
-	    height = 60,
+    	width = 60,
+	    height = 42,
 	    defaultFile = "fertilizer-bucket.png",
 	    overFile = "fertilizer-bucket-over.png",
 	    onEvent = _M.buyFertilizer,
@@ -473,7 +473,7 @@ function _M:createBuyFertilizerDialog()
 	fertilizerBucketGroup:insert(bucketButton)
 	commonGroup:insert(fertilizerBucketGroup)
 
-	local bucketText = display.newText(fertilizerBucketGroup, _s("Bucket"), bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMax, globals.font, 13)
+	local bucketText = display.newText(fertilizerBucketGroup, _s("Bucket"), bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMax + 20, globals.font, 13)
 	bucketText.anchorX, bucketText.anchorY = 0.5, 1
 
 	local bucketAmountLabel = display.newText(fertilizerBucketGroup, bucketButton.amount, bucketButton.contentBounds.xMin + bucketButton.width / 2, bucketButton.contentBounds.yMin + bucketButton.height / 2, globals.font, 16)
