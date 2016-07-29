@@ -92,10 +92,10 @@ function scene:create( event )
     local background = display.newImage("planting-background.png", -30, -45 ) 
     globalSceneGroup:insert(background)
 
-    basket = display.newImageRect(globalSceneGroup, "harvest-basket.png", 60, 35)
-    basket.x, basket.y = 230, 70
+    basket = display.newImageRect(globalSceneGroup, "harvest-basket.png", 80, 50)
+    basket.x, basket.y = 210, 90
 
-    compost = display.newImageRect(globalSceneGroup, "harvest-compost.png", 50, 50)
+    compost = display.newImageRect(globalSceneGroup, "harvest-compost.png", 90, 92)
     compost.x, compost.y = 30, 55
 
     -- this has to go here because the level config variable has to be set in scene:create
@@ -412,8 +412,8 @@ function veggieToBasket(veggie)
 
     increaseScore()
 
-    local x = 242 + veggiePlacementX
-    local y = 70 + veggiePlacementY
+    local x = 230 + veggiePlacementX
+    local y = 95 + veggiePlacementY
 
     transition.to(veggie, {y=y, x=x, time = 800, width=10, height=10, delay=400})
     veggie:toFront()

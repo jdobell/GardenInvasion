@@ -512,8 +512,8 @@ function _M:createBuyInAppPurchaseDialog()
 
 	buyIAPButton = widget.newButton
 	{
-		width = 30,
-		height = 30,
+		width = 40,
+		height = 35,
 		defaultFile = "IAP-icon.png",
 		overFile = "IAP-icon-over.png",
 		onEvent = _M.openBuyIAPDialog
